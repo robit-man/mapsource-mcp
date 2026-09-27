@@ -14,9 +14,17 @@ const generated = await readFile(
   "utf8",
 );
 const docs = await readFile(resolve(root, "docs/tools.md"), "utf8");
+const cli = await readFile(resolve(root, "dist/cli.js"), "utf8");
 
 if (pkg.name !== "mapsource-mcp" || pkg.private)
   throw new Error("Package identity is not publishable as mapsource-mcp");
+if (
+  pkg.bin?.["mapsource-mcp"] !== "dist/cli.js" ||
+  !cli.startsWith("#!/usr/bin/env node\n")
+)
+  throw new Error(
+    "The mapsource-mcp CLI must use a normalized bin path and retain its shebang",
+  );
 if (
   pkg.mcpName !== server.name ||
   pkg.version !== server.version ||
