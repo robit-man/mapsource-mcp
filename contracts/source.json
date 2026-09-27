@@ -1,0 +1,25 @@
+{
+  "origin": "https://mapsource.io",
+  "sources": {
+    "openapi": {
+      "url": "https://mapsource.io/api/openapi.json",
+      "sha256": "362f2cd068e318e2e652fefd58e394265815833756f6d286dc459587bb1bbac8",
+      "bytes": 531642
+    },
+    "mcp": {
+      "url": "https://mapsource.io/mcp.json",
+      "sha256": "b371a3a5d2c80a7fba86c14694c4721f5e28c23bf529eebf8015cd14195862d9",
+      "bytes": 29076
+    },
+    "llms": {
+      "url": "https://mapsource.io/llms.txt",
+      "sha256": "4a0d7179d73cc1aafc73f3b2ff42f70fc4929a82d9af2697fca133d7cd6d00eb",
+      "bytes": 13859
+    },
+    "llmsFull": {
+      "url": "https://mapsource.io/llms-full.txt",
+      "sha256": "3ec1fb6141a3ebaf8c96722f24b81341a88e45bc966bc0608744f9b9dd341a22",
+      "bytes": 52825
+    }
+  }
+}

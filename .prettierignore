@@ -1,0 +1,5 @@
+dist
+node_modules
+contracts/*.json
+src/generated
+package-lock.json

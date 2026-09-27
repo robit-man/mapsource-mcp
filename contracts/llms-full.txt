@@ -1,0 +1,1095 @@
+# Mapsource Overpass API — full agent contract
+
+Endpoint reference with authentication requirements, parameters, constraints, result types, and error codes.
+
+## Authentication
+
+Authenticated endpoints require `Authorization: Bearer $MAPSOURCE_API_KEY`. Keep keys in secret storage, outside URLs and public client bundles. Subscription keys are available at https://mapsource.io/pricing?focus=plans. Access requirements are listed for each operation.
+
+Address and business search and regional POI discovery are included in every plan. Use your existing API key and shared request allowance; no separate subscription is required. An x402 Overpass query payment does not grant access to search or other subscription services.
+
+Lookup counts one successful request, plus an interpreter request when regional Overpass fallback is used. Discovery counts its Overpass query and optional isochrone/matrix requests, without an additional wrapper charge. Read [search request accounting](https://mapsource.io/docs/limits#search-accounting) and [address/business integration examples](https://mapsource.io/docs/places-api). Operation cost classes below are relative costs, not monthly request multipliers.
+
+Where x402 is available, an unpaid query returns HTTP 402 with a payment requirement specifying the network, asset, amount, and recipient. Submit a signed payment only when the user explicitly approves the amount and task budget.
+
+## Common templates
+
+- Overpass: POST https://mapsource.io/api/interpreter
+- Address/business lookup: GET https://mapsource.io/api/places/lookup?q={text}&lat={latitude}&lon={longitude}
+- Regional POI discovery: POST https://mapsource.io/api/places/discover
+- Raster basemap: https://mapsource.io/api/tiles/dark/{z}/{x}/{y}.png and https://mapsource.io/api/tiles/light/{z}/{x}/{y}.png
+- Vector basemap: https://mapsource.io/api/tiles/vector/{z}/{x}/{y}.pbf
+- Terrain: https://mapsource.io/api/terrain/{z}/{x}/{y}.png
+- Elevation: https://mapsource.io/api/elevation?lat={latitude}&lon={longitude}
+- Compiled style: https://mapsource.io/api/styles/{id}/style.json
+- Glyphs: https://mapsource.io/api/glyphs/{fontstack}/{range}.pbf
+
+## Browser map presentation
+
+For MapLibre, load https://mapsource.io/map-ui/v1/map-ui.css after MapLibre CSS and import `installMapsourceUI`, `deriveMapTheme`, `formatPlaceFeature`, and `createPlaceLayers` from https://mapsource.io/map-ui/v1/map-ui.mjs. These public assets require no API key. Create the map with `attributionControl: { compact: true }`, then call `installMapsourceUI(map)`. Attribution starts collapsed, preserves source credits, and follows the active style's colors and font. Dispose the returned cleanup callback before removing the map.
+
+Compiled styles publish `metadata["mapsource:ui"]`. Use the place helpers to render supplied lookup/discovery titles and details above result dots, with collision handling and a selected-result label. Retain a selectable result list, and restore GeoJSON sources/layers on `style.load`. Raster styles need a glyphs URL for these labels. Custom fonts require separate browser font assets for HTML controls. Style JSON cannot install DOM controls in another application; integrate the helper explicitly. See https://mapsource.io/docs/clients#map-ui for executable integration code.
+
+## Error model
+
+Gateway errors include a stable code, message, retryable flag, request ID, and optional details. Use the code and retryable flag to select retry behavior. Upstream and interrupted-stream responses may use different formats.
+
+```json
+{ "error": { "version": "1", "code": "STABLE_MACHINE_CODE", "message": "...", "retryable": false, "details": {}, "requestId": "..." } }
+```
+
+## Result handles
+
+Supported operations can return result handles with a type, creation and expiry times, feature count, estimated size, bounding box, source dataset versions, and operation hash. Handles are scoped to the issuing key. Inaccessible handles return NOT_FOUND; expired handles return HANDLE_EXPIRED. Pass handles between compatible operations to avoid transferring intermediate payloads.
+
+## Operations
+
+### readServiceStatus
+
+GET /api/status — Read per-subsystem availability and dataset freshness
+
+Reports each subsystem independently, the OSM dataset timestamp, minute-diff replication state and lag in seconds, and whether machine payment can settle.
+
+When to use: Monitor service availability, dataset freshness, and payment settlement readiness.
+When not to use: Poll at an appropriate interval; status checks are not required before every API call.
+
+Parameters:
+  (no parameters)
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation status.
+
+### readMetrics
+
+GET /api/metrics — Read request rates, latencies and data freshness
+
+Request rates, success rates, p50/p95/p99 latency, failure counters, dataset ages, and handle usage for the selected time window.
+
+When to use: Monitor performance and identify slow operations or stale datasets.
+When not to use: Use /api/status for current service availability.
+
+Parameters:
+  - window (query): Minutes to measure over. [min 1, max 1440, default 60]
+
+Auth: subscription. Cost class: 0. Latency: fast. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation metrics.
+
+### readBasemapCatalog
+
+GET /api/tiles/catalog — Discover basemap tile sources
+
+Tile templates, source and layer zoom ranges, tileset versions, snapshot dates, and attribution. nativeMaxZoom identifies the highest generated tile resolution.
+
+When to use: Configure tile sources and supported zoom levels before initializing a map.
+
+Parameters:
+  (no parameters)
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation basemaps.
+
+### readBasemapContract
+
+GET /api/basemap/contract — Read the semantic basemap layer namespace
+
+Semantic layer identifiers, supported style properties, and mappings to the tile schema.
+
+When to use: Look up layer identifiers and properties when creating or editing a style.
+When not to use: Use the basemap catalog to retrieve tile URLs.
+
+Parameters:
+  (no parameters)
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_style with operation explain.
+
+### queryOverpass
+
+POST /api/interpreter — Execute an Overpass QL query
+
+Queries OpenStreetMap nodes, ways, relations, and generated areas. Supports tags, spatial filters, sets, recursion, geometry, metadata, and JSON, XML, or CSV output.
+
+When to use: Query arbitrary OSM tags, spatial relationships, or topology using Overpass QL.
+When not to use: Use lookupPlaces for address and business suggestions, discoverPlaces for regional POI lists, or findNearby for category-based radius searches.
+
+Parameters:
+  - data (body, required): A complete bounded QL program. [max length 131072]
+
+Auth: x402-eligible. Cost class: 5. Latency: slow. Deterministic: no.
+Produces a handle of type: feature_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, QUERY_TOO_LARGE, TIMEOUT_EXCEEDS_PLAN, MAXSIZE_EXCEEDS_PLAN, ATTIC_UNSUPPORTED, RESPONSE_TOO_LARGE.
+Through MCP: geo_search with operation overpass.
+
+### queryOverpassCompat
+
+POST /api/{key}/interpreter — Execute Overpass QL with the key in the path
+
+Overpass interpreter access with a credential in the URL path. Query behavior, limits, quota, and errors match /api/interpreter.
+
+When to use: Connect existing Overpass clients that cannot set request headers.
+When not to use: Prefer Bearer authentication. URL credentials may appear in logs, browser history, and referrer headers.
+
+Parameters:
+  - key (path, required): The subscription key. Prefer the Authorization header wherever the client allows one.
+  - data (body, required): A complete bounded QL program. [max length 131072]
+
+Auth: subscription. Cost class: 5. Latency: slow. Deterministic: no.
+Produces a handle of type: feature_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, QUERY_TOO_LARGE, TIMEOUT_EXCEEDS_PLAN, MAXSIZE_EXCEEDS_PLAN, ATTIC_UNSUPPORTED, RESPONSE_TOO_LARGE.
+REST only; no MCP tool maps to this operation.
+
+### resolveEntity
+
+GET /api/entities/resolve — Resolve a name to a geographic entity
+
+Resolves a place name to an entity ID, type, display name, center, source ID, and confidence score. Similar-scoring candidates produce an ambiguous result.
+
+When to use: Resolve a place once and reference its entity ID in subsequent operations.
+When not to use: Use nearby search for features around a point, or readEntity for an existing entity ID.
+
+Parameters:
+  - q (query, required): The place name. [min length 1, max length 120]
+  - lat (query): Bias toward this latitude without hiding distant matches. [min -85.05112878, max 85.05112878]
+  - lon (query): Bias toward this longitude. [min -180, max 180]
+  - limit (query): Maximum number of candidates. [min 1, max 50, default 10]
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation resolve.
+
+### readEntity
+
+GET /api/entities/{entityId} — Read an entity by its id
+
+Retrieves an entity from the current dataset using the source reference encoded in its ID.
+
+When to use: Retrieve the name, center, and bounding box associated with an entity ID.
+
+Parameters:
+  - entityId (path, required): An id from resolveEntity, beginning geo_.
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+Through MCP: geo_search with operation entity.
+
+### searchPlaces
+
+GET /api/places/search — Resolve a place name to a coordinate
+
+Global place-name search over a locally built index, ranked by prominence with an optional bias point.
+
+When to use: Look up a populated place by name and retrieve its coordinates.
+When not to use: Use lookupPlaces for addresses, businesses, brands and mixed destination suggestions. Use discoverPlaces for businesses within a viewport, polygon or travel-time region.
+
+Parameters:
+  - q (query, required): Place name to look up. [max length 120]
+  - limit (query): Maximum results. [min 1, max 50, default 10]
+  - lat (query): Bias results toward this point without excluding distant matches. [min -85.05112878, max 85.05112878]
+  - lon (query): Bias results toward this point without excluding distant matches. [min -180, max 180]
+  - class (query): Restrict to one class of populated place. [one of city, town, village, suburb, neighbourhood, hamlet]
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: yes.
+Produces a handle of type: place_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation search.
+
+### lookupPlaces
+
+GET /api/places/lookup — Look up addresses, businesses and places
+
+Local OSM address/name lookup for map search and routing destination pickers. Supports business categories, partial names, accent normalization and typo matching. Coordinates bias ranking; bounded=true is required to restrict results to bbox. When the global index is unavailable, coverage identifies the regional Overpass and place-name-index fallback. Included in every subscription plan: one successful lookup counts as one request, plus an interpreter request if regional Overpass fallback is used. Search index freshness is independent of the Overpass dataset; read coverage.dataTimestamp.
+
+When to use: Find an address, business, brand, landmark, street or populated place. Use a location qualifier such as Starbucks in Portland to search away from the map focus.
+When not to use: Use discoverPlaces to enumerate businesses in a viewport or travel-time region. Ranking scores are not probabilities; bestMatchId is null for ambiguous matches. House numbers are never substituted.
+
+Parameters:
+  - q (query, required): Search text; addresses retain the requested house number. [min length 1, max length 120]
+  - lat (query): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query): Longitude in decimal degrees. [min -180, max 180]
+  - limit (query): Maximum results. [min 1, max 20, default 8]
+  - language (query): Preferred language code. Unavailable translations fall back to source names with a warning. [default "en"]
+  - types (query): Comma-separated address,business,landmark,street,place filters.
+  - category (query): Business/POI category or alias, such as coffee, pharmacy, restaurants, groceries, hotels, shops or parks.
+  - countrycodes (query): Comma-separated two-letter country codes. Records without a source country code do not satisfy this filter.
+  - bbox (query): west,south,east,north. A focus hint unless bounded=true; no dateline crossing.
+  - bounded (query): Restrict results to bbox. A bias point alone never requests this restriction. [default false]
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation lookup.
+
+### discoverPlaces
+
+POST /api/places/discover — Find businesses and POIs in a region
+
+Select OSM shops, offices, amenities and visitor facilities inside a viewport, polygon or travel-time region. Uses the local Overpass database, polygon filtering and, optionally, Valhalla. No geocoder index is required. Each internal Overpass, isochrone or matrix request consumes its normal quota; the composition adds no separate request charge.
+
+When to use: Find coffee within a 15-minute drive, list businesses in a map viewport, or filter POIs by an existing isochrone. Paginate bounded results; narrow the area when coverage.truncated is true.
+When not to use: Use lookupPlaces for ranked address/name suggestions. Discovery uses feature centers, not full-geometry intersections. It does not guarantee a complete real-world business directory: only mapped OSM records are available. Travel-time ranking compares at most the 25 nearest candidates.
+
+Parameters:
+  - q (body): Optional business name or brand filter. [max length 120]
+  - category (body): Optional category alias, such as coffee, pharmacy, restaurants, hotels or shops.
+  - bbox (body): west,south,east,north (a four-number array is also accepted). Maximum extent: one degree per axis. Supply exactly one of bbox, region or minutes.
+  - region (body): GeoJSON Polygon, MultiPolygon, polygon Feature/FeatureCollection, or an owned result-handle ID. Closed rings required; holes excluded. Maximum encoded coordinates: 100 KB.
+  - minutes (body): Generate a reachable region from lat/lon. [min 1, max 30]
+  - lat (body): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (body): Longitude in decimal degrees. [min -180, max 180]
+  - costing (body): Travel mode for isochrone and matrix requests. [one of auto, bicycle, pedestrian, truck, default "auto"]
+  - rankBy (body): distance sorts from lat/lon or the region center. travel_time requires lat/lon, limit <=25 and offset=0; unreachable times remain null. [one of distance, travel_time, default "distance"]
+  - limit (body): Page size. [min 1, max 100, default 20]
+  - offset (body): Offset into the bounded candidate results; re-query after dataset updates may change ordering. [min 0, max 2000, default 0]
+  - language (body): Preferred source name language. [default "en"]
+
+Auth: subscription. Cost class: 0. Latency: slow. Deterministic: no.
+Accepts handles: isochrone, analysis, feature_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, UPSTREAM_UNAVAILABLE, HANDLE_EXPIRED.
+Through MCP: geo_search with operation discover.
+
+### autocompletePlaces
+
+GET /api/places/autocomplete — Prefix-match a place name
+
+Prefix search over the place-name index, matching the final word of a partial query.
+
+When to use: Provide place-name suggestions as a user types.
+When not to use: Use lookupPlaces for address, business and brand suggestions, including partial names. Use searchPlaces for complete populated-place names.
+
+Parameters:
+  - q (query, required): Partial place name. [max length 120]
+  - limit (query): Maximum results. [min 1, max 50, default 10]
+  - lat (query): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query): Longitude in decimal degrees. [min -180, max 180]
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: yes.
+Produces a handle of type: place_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation autocomplete.
+
+### findNearby
+
+GET /api/places/nearby — Find features within a radius
+
+Returns named features or category matches within a radius, sorted by distance.
+
+When to use: Find nearby amenities, infrastructure, or named features around a coordinate.
+When not to use: Use Overpass QL for bounding-box queries or areas beyond the supported radius.
+
+Parameters:
+  - lat (query, required): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query, required): Longitude in decimal degrees. [min -180, max 180]
+  - radius (query): Metres. [min 10, max 5000, default 500]
+  - category (query): Omit for any named feature.
+  - limit (query): Maximum records. [min 1, max 100, default 20]
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: no.
+Produces a handle of type: place_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation nearby.
+
+### reverseGeocode
+
+GET /api/places/reverse — Reverse geocode a coordinate
+
+Returns the nearest matching place and alternative candidates. Addressed features are preferred at comparable distances.
+
+When to use: Retrieve a place name or address associated with a coordinate.
+
+Parameters:
+  - lat (query, required): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query, required): Longitude in decimal degrees. [min -180, max 180]
+  - radius (query): Metres. [min 10, max 1000, default 150]
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation reverse.
+
+### readPlace
+
+GET /api/places/{osmType}/{osmId} — Read one feature by its OSM identity
+
+Returns the tags and geometry center of an OSM node, way, or relation.
+
+When to use: Retrieve details for an OSM object identified by type and ID.
+
+Parameters:
+  - osmType (path, required): node, way or relation. [one of node, way, relation]
+  - osmId (path, required): Positive OSM id. [min 1]
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+Through MCP: geo_search with operation details.
+
+### forwardGeocode
+
+GET /api/geocode — Geocode through the compatibility provider
+
+Address and place lookup through the separately configured, rate-limited geocoding provider. Retained for clients using this response format; local search is available through lookupPlaces.
+
+When to use: Maintain an existing integration that requires the compatibility geocoder's response format.
+When not to use: Use lookupPlaces for new address, business, brand and place search integrations. This provider-backed endpoint supports interactive requests, not bulk geocoding.
+
+Parameters:
+  - q (query, required): Address or place text. [max length 200]
+
+Auth: subscription. Cost class: 2. Latency: slow. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_search with operation geocode.
+
+### computeRoute
+
+POST /api/route — Compute a turn-by-turn route
+
+A route between 2 and 10 waypoints on the global road graph, optionally with a sampled elevation profile.
+
+When to use: Retrieve route geometry, directions, distance, and travel time between waypoints.
+When not to use: Use a matrix for travel-time comparisons across multiple origins and destinations.
+
+Parameters:
+  - locations (body, required): Ordered waypoints; first is origin, last is destination. [min 2, max 10]
+  - costing (body): Travel mode. [one of auto, bicycle, pedestrian, truck, motor_scooter, bus, default "auto"]
+  - elevation (body): Also return a terrain profile with gain and loss. [default false]
+
+Auth: subscription. Cost class: 3. Latency: fast. Deterministic: no.
+Accepts handles: place_collection.
+Produces a handle of type: route.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_navigate with operation route.
+
+### computeMatrix
+
+POST /api/matrix — Compute a travel-time and distance matrix
+
+Returns travel times and distances for up to 625 origin-destination pairs per request.
+
+When to use: Compare destinations or build a travel-time matrix for analysis.
+When not to use: Use route when directions or route geometry are required.
+
+Parameters:
+  - sources (body, required): Origins. [min 1, max 25]
+  - targets (body): Destinations. Omit for the square matrix of sources against themselves. [max 25]
+  - costing (body): Travel mode. [one of auto, bicycle, pedestrian, truck, motor_scooter, bus, default "auto"]
+
+Auth: subscription. Cost class: 8. Latency: slow. Deterministic: no.
+Accepts handles: place_collection, feature_collection.
+Produces a handle of type: matrix.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_navigate with operation matrix.
+
+### computeIsochrone
+
+POST /api/isochrone — Compute reachable-area polygons
+
+Returns reachable-area polygons for up to four travel-time bands from one origin.
+
+When to use: Calculate service areas, catchments, or accessibility within a travel-time limit.
+
+Parameters:
+  - entity (body): An entity id to centre on, instead of lat and lon.
+  - lat (query, required): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query, required): Longitude in decimal degrees. [min -180, max 180]
+  - costing (body): Travel mode. [one of auto, bicycle, pedestrian, truck, motor_scooter, bus, default "auto"]
+  - contours (body): Travel-time bands in minutes. [min 1, max 4]
+
+Auth: subscription. Cost class: 6. Latency: slow. Deterministic: no.
+Produces a handle of type: isochrone.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_navigate with operation isochrone.
+
+### matchTrace
+
+POST /api/map-match — Fit a GPS trace to the road network
+
+Returns matched geometry, confidence scores, and OSM way IDs for an ordered GPS trace.
+
+When to use: Match recorded travel coordinates to the road network.
+
+Parameters:
+  - shape (body, required): The trace, in order. [min 2, max 1000]
+  - costing (body): Travel mode. [default "auto"]
+  - shapeMatch (body): map_snap tolerates noise; edge_walk assumes the trace already follows the network. [one of map_snap, edge_walk, default "map_snap"]
+
+Auth: subscription. Cost class: 5. Latency: slow. Deterministic: no.
+Produces a handle of type: route.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_navigate with operation map_match.
+
+### snapPoints
+
+POST /api/snap — Snap points to the road network
+
+Returns the nearest road-network position for each coordinate, including way ID, street name, and side of street.
+
+When to use: Associate coordinates with road segments before routing or analysis.
+
+Parameters:
+  - locations (body, required): Points to snap. [min 1, max 50]
+  - costing (body): Travel mode. [default "auto"]
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_navigate with operation snap.
+
+### optimizeOrder
+
+POST /api/optimize — Solve the visit order for a set of stops
+
+Optimizes the visit order for 3 to 20 stops while keeping the first and last fixed.
+
+When to use: Plan stop sequences for delivery, fieldwork, or multi-stop travel.
+
+Parameters:
+  - locations (body, required): Stops; first and last are held fixed. [min 3, max 20]
+  - costing (body): Travel mode. [default "auto"]
+
+Auth: subscription. Cost class: 8. Latency: slow. Deterministic: no.
+Produces a handle of type: route.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_navigate with operation optimize.
+
+### analyzeGeometry
+
+POST /api/analyze — Run a spatial analysis
+
+Buffer, centroid, bbox, area, length, distance, intersect, union, difference, contains, intersects, nearest, simplify and convex hull.
+
+When to use: Measure or transform GeoJSON, coordinates, query results, and result handles.
+When not to use: Use a pipeline for several dependent operations in one request.
+
+Parameters:
+  - operation (body, required): The operation to run. [one of buffer, centroid, bbox, area, length, distance, intersect, union, difference, contains, intersects, nearest, simplify, convex]
+  - a (body, required): GeoJSON, a [lon, lat] pair, a query or places result, or a result handle.
+  - b (body): Second operand, in the same forms as a.
+  - distance (body): Buffer radius or simplify tolerance. [min 0, max 500000]
+  - units (body): Units for distance. [one of meters, kilometers, miles, default "meters"]
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: yes.
+Accepts handles: feature_collection, route, isochrone, analysis, place_collection.
+Produces a handle of type: analysis.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_analyze with operation analyze.
+
+### runPipeline
+
+POST /api/compute — Run a multi-step spatial pipeline
+
+Executes up to 12 ordered steps with references to earlier results and returns the selected output.
+
+When to use: Run dependent search, navigation, and analysis without downloading intermediate results.
+When not to use: Call the relevant endpoint directly for a single operation.
+
+Parameters:
+  - pipeline (body, required): Ordered steps of {id, op, args}. [min 1, max 12]
+  - return (body): Which step to return, as $stepId. Defaults to the last.
+  - estimateOnly (body): Report the cost without executing. [default false]
+
+Auth: subscription. Cost class: 10. Latency: batch. Deterministic: no.
+Accepts handles: feature_collection, route, isochrone, matrix, analysis, place_collection.
+Produces a handle of type: analysis.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, PIPELINE_INVALID, PIPELINE_STEP_FAILED, PIPELINE_DEADLINE_EXCEEDED, HANDLE_EXPIRED, HANDLE_QUOTA_EXCEEDED.
+Through MCP: geo_analyze with operation pipeline.
+
+### readResult
+
+GET /api/results/{id} — Retrieve a held result
+
+Retrieves a result payload or its metadata: type, version, feature count, size, bounding box, dataset versions, operation hash, and lineage.
+
+When to use: Download a result payload or inspect its metadata before further processing.
+When not to use: Pass the handle directly to supported operations when the client does not need the payload.
+
+Parameters:
+  - id (path, required): The handle id, rh_ followed by 32 hex characters.
+  - mode (query): summary returns the envelope without the payload. [one of summary]
+
+Auth: subscription. Cost class: 1. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, HANDLE_EXPIRED, NOT_FOUND.
+Through MCP: geo_analyze with operation result.
+
+### readAccount
+
+GET /api/account — Read account and credential details
+
+Returns the organization, projects, and authenticated credential's scopes, project, and identity type.
+
+When to use: Inspect account membership, project attribution, and credential permissions.
+
+Parameters:
+  (no parameters)
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+REST only; no MCP tool maps to this operation.
+
+### createProject
+
+POST /api/account/projects — Create a project
+
+Creates a project for organizing credentials, usage, and budgets by workload or environment.
+
+When to use: Separate development, staging, production, or other account workloads.
+
+Parameters:
+  - name (body, required): Human name. [max length 120]
+  - slug (body): Stable id. Defaults to a slug of the name. [max length 48]
+  - environment (body): Which environment this project is. [one of development, staging, production, default "production"]
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### archiveProject
+
+DELETE /api/account/projects/{project} — Archive a project
+
+Archives a project while preserving its usage history.
+
+When to use: Deactivate a project that is no longer in use.
+
+Parameters:
+  - project (path, required): Project id or slug.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### listServiceAccounts
+
+GET /api/account/projects/{project}/service-accounts — List a project's service accounts
+
+Lists service-account identities associated with a project.
+
+When to use: Review service accounts configured for a project's automated workloads.
+
+Parameters:
+  - project (path, required): Project id or slug.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### createServiceAccount
+
+POST /api/account/projects/{project}/service-accounts — Create a service account
+
+Creates an identity for automated workloads with independently managed credentials.
+
+When to use: Assign a dedicated identity to an application, integration, or agent.
+
+Parameters:
+  - project (path, required): Project id or slug.
+  - name (body, required): Service account name. [max length 120]
+  - description (body): Service account description. [max length 400]
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### disableServiceAccount
+
+DELETE /api/account/projects/{project}/service-accounts/{id} — Disable a service account
+
+Disables a service account and revokes its credentials in one transaction.
+
+When to use: Revoke access for a workload or compromised service account.
+
+Parameters:
+  - project (path, required): Project id or slug.
+  - id (path, required): Service account id.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### listProjectKeys
+
+GET /api/account/projects/{project}/keys — List a project's credentials
+
+Lists scopes, labels, identities, expiry, and revocation status. Secret key values are excluded.
+
+When to use: Review credentials and access permissions for a project.
+
+Parameters:
+  - project (path, required): Project id or slug.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### issueProjectKey
+
+POST /api/account/projects/{project}/keys — Issue a scoped credential
+
+Issues a scoped API key with an optional service-account association and expiry. The secret is returned once.
+
+When to use: Create a credential with permissions for a specific workload.
+When not to use: Service-account credentials cannot issue additional credentials.
+
+Parameters:
+  - project (path, required): Project id or slug.
+  - label (body): Credential label. [max length 120]
+  - scopes (body): Capability categories this key may use, or * for all. Defaults to *.
+  - serviceAccountId (body): Bind the key to an agent identity.
+  - expiresInDays (body): Expire the key automatically. [min 1, max 3650]
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### revokeProjectKey
+
+DELETE /api/account/projects/{project}/keys/{id} — Revoke a credential
+
+Immediately revokes a credential while retaining usage records.
+
+When to use: Revoke a compromised credential or remove access for a retired workload.
+
+Parameters:
+  - project (path, required): Project id or slug.
+  - id (path, required): Key id, not the secret.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### setProjectBudget
+
+PUT /api/account/projects/{project}/budget — Set a project usage budget
+
+Configures request budgets. A soft limit adds a warning header; a hard limit rejects requests with BUDGET_EXCEEDED.
+
+When to use: Set project usage thresholds before automated or high-volume work.
+
+Parameters:
+  - project (path, required): Project id or slug.
+  - period (body): Window the budget counts over. [one of month, day, default "month"]
+  - softRequests (body): Warn past this many accepted requests. null removes it. [min 0]
+  - hardRequests (body): Refuse past this many. null removes it. [min 0]
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### readAccountUsage
+
+GET /api/account/usage — Read usage attributed by project
+
+Returns accepted requests, response bytes, and budgets for each project in the current period.
+
+When to use: Monitor project-level consumption and allocate usage across workloads.
+
+Parameters:
+  (no parameters)
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+REST only; no MCP tool maps to this operation.
+
+### readAccountAudit
+
+GET /api/account/audit — Read the audit trail
+
+Lists organization changes to credentials, projects, service accounts, and budgets in reverse chronological order, with actor information.
+
+When to use: Review account changes and the identity responsible for each action.
+
+Parameters:
+  (no parameters)
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+REST only; no MCP tool maps to this operation.
+
+### sampleElevation
+
+GET /api/elevation — Sample ground elevation
+
+Surface height at a coordinate, floored at sea level, with the raw model reading alongside.
+
+When to use: Retrieve terrain height and the raw model elevation at one coordinate.
+When not to use: Use route with elevation enabled for a profile along a route.
+
+Parameters:
+  - lat (query, required): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query, required): Longitude in decimal degrees. [min -180, max 180]
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation elevation.
+
+### getTerrainTile
+
+GET /api/terrain/{z}/{x}/{y}.png — Read a terrarium-encoded elevation tile
+
+Returns a Terrarium-encoded Mapzen Terrain PNG for MapLibre raster-dem sources.
+
+When to use: Display hillshading or 3D terrain using the catalog's tile template and zoom range.
+When not to use: Use sampleElevation for a single coordinate without decoding a tile.
+
+Parameters:
+  - z (path, required): Zoom, 0 to 15.
+  - x (path, required): Tile column.
+  - y (path, required): Tile row, with the .png suffix.
+
+Auth: subscription. Cost class: 1. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation terrain.
+
+### generateContours
+
+GET /api/contours — Generate banded topographic contours
+
+Vector contour bands with elevations, index flags and along-band label paths.
+
+When to use: Display elevation contours or analyze terrain relief around a coordinate.
+
+Parameters:
+  - lat (query, required): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
+  - lon (query, required): Longitude in decimal degrees. [min -180, max 180]
+  - zoom (query): Resolution. [min 6, max 13, default 9]
+  - bands (query): Requested band count. [min 4, max 24, default 14]
+
+Auth: subscription. Cost class: 4. Latency: slow. Deterministic: yes.
+Produces a handle of type: feature_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation contours.
+
+### listStyles
+
+GET /api/styles — List style presets and saved profiles
+
+Lists available presets and profiles associated with the authenticated key.
+
+When to use: Select a preset or retrieve saved basemap profiles.
+
+Parameters:
+  (no parameters)
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_style with operation list.
+
+### readCompiledStyle
+
+GET /api/styles/{id}/style.json — Read a compiled MapLibre style
+
+The compiled style document for a preset or one of your saved profiles. metadata['mapsource:ui'] contains the resolved colors and font stacks for browser attribution and result labels; install the public Map UI helper to apply them to HTML controls.
+
+When to use: Load a preset or saved profile into a MapLibre-compatible client.
+
+Parameters:
+  - id (path, required): Preset id or profile slug.
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### readStyleManifest
+
+GET /api/styles/{id}/manifest.json — Read the semantic manifest behind a style
+
+Returns the semantic manifest used to compile a style.
+
+When to use: Retrieve an existing style's editable semantic properties.
+
+Parameters:
+  - id (path, required): Preset id or profile slug.
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### compileStyle
+
+POST /api/styles/compile — Compile a style manifest
+
+Compiles a semantic manifest into a validated MapLibre style, returning a bundle hash and an optional diff against a base preset.
+
+When to use: Validate and preview style changes before saving a profile.
+When not to use: Submit a semantic manifest or preset patch; raw MapLibre JSON is not accepted.
+
+Parameters:
+  - manifest (body): A complete style manifest.
+  - base (body): Preset to patch instead, which adds a diff to the response. [one of light, dark, operations, solarized-light, solarized-dark, mapsource]
+  - patch (body): Semantic overrides merged onto the base.
+  - include (body): summary omits the compiled style. [one of style, summary]
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, STYLE_INVALID.
+Through MCP: geo_style with operation preview.
+
+### saveStyleProfile
+
+POST /api/styles/profiles — Save a basemap profile
+
+Saves a semantic manifest as a named profile associated with the authenticated key.
+
+When to use: Store a style for subsequent retrieval, editing, and rendering.
+
+Parameters:
+  - name (body, required): Human name. [max length 120]
+  - slug (body): Stable URL id. Defaults to a slug of the name. [max length 48]
+  - description (body): Profile description. [max length 400]
+  - manifest (body): The manifest to save.
+  - base (body): Preset to patch instead.
+  - patch (body): Semantic overrides.
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, STYLE_INVALID, PROFILE_LIMIT_REACHED.
+Through MCP: geo_style with operation save.
+
+### generateStyleFromIntent
+
+POST /api/styles/intent — Generate a style from a text description
+
+Converts text into a semantic manifest and compiled style. Returns matched vocabulary, applied changes, the bundle hash, and validation results.
+
+When to use: Create an initial basemap style from a description, then review the proposed manifest.
+When not to use: Use compileStyle for an existing manifest or explicit property changes.
+
+Parameters:
+  - intent (body, required): Text description of the desired basemap style. [min length 3, max length 2000]
+  - base (body): Preset to build on. Defaults to one the intent implies. [one of light, dark, operations, solarized-light, solarized-dark, mapsource]
+  - save (body): Save the result as a profile revision on this key. [default false]
+  - name (body): Profile name when saving. [max length 120]
+  - slug (body): Profile slug when saving. [max length 48]
+  - include (body): style also returns the compiled MapLibre document. [one of style]
+
+Auth: subscription. Cost class: 2. Latency: fast. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, STYLE_INVALID, PROFILE_LIMIT_REACHED.
+Through MCP: geo_style with operation intent.
+
+### readStyleSchema
+
+GET /api/styles/schema.json — Read the semantic style JSON Schema
+
+Returns the JSON Schema for semantic manifests, including schema and compiler versions.
+
+When to use: Validate manifests locally or generate editor controls from the schema.
+When not to use: Use /api/basemap/contract for layer definitions and supported properties.
+
+Parameters:
+  (no parameters)
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_style with operation schema.
+
+### listStyleRevisions
+
+GET /api/styles/{id}/revisions — List a profile's immutable revisions
+
+Lists saved profile revisions, newest first, with manifest hashes and revision-specific style URLs.
+
+When to use: Select a fixed revision for rendering or retrieve an earlier manifest.
+
+Parameters:
+  - id (path, required): Profile id or slug.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+Through MCP: geo_style with operation revisions.
+
+### diffStyleRevisions
+
+GET /api/styles/{id}/diff — Compare two revisions at the semantic level
+
+Compares profile revisions and returns changed semantic properties with previous and updated values.
+
+When to use: Review property changes before applying a style revision.
+When not to use: This endpoint compares semantic manifests, not compiled MapLibre documents.
+
+Parameters:
+  - id (path, required): Profile id or slug.
+  - from (query): Earlier revision. Defaults to the one before `to`.
+  - to (query): Later revision. Defaults to the current one.
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+Through MCP: geo_style with operation diff.
+
+### deleteStyleProfile
+
+DELETE /api/styles/profiles/{id} — Delete a saved basemap profile
+
+Remove a profile from this key.
+
+When to use: Remove an unused profile or release capacity for a new profile.
+
+Parameters:
+  - id (path, required): Profile id or slug.
+
+Auth: subscription. Cost class: 1. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+Through MCP: geo_style with operation delete.
+
+### listFontstacks
+
+GET /api/glyphs — List label fontstacks
+
+Lists hosted fontstacks and fonts uploaded with the authenticated key.
+
+When to use: Check available font names before configuring label typography.
+
+Parameters:
+  (no parameters)
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_style with operation fonts.
+
+### uploadFont
+
+POST /api/fonts — Upload a font
+
+Convert a TTF, OTF or WOFF to SDF glyph ranges and report the Unicode blocks it covers.
+
+When to use: Add a custom label font and inspect its supported Unicode ranges.
+
+Parameters:
+  - name (body, required): The stack name a style will refer to. [max length 64]
+  - data (body, required): The font file, base64-encoded.
+  - license (body): Recorded with the font; not verified. [max length 200]
+
+Auth: subscription. Cost class: 6. Latency: batch. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, PROFILE_LIMIT_REACHED.
+Through MCP: geo_style with operation upload_font.
+
+### deleteFont
+
+DELETE /api/fonts/{name} — Delete an uploaded font
+
+Remove a font from this key.
+
+When to use: Remove an unused custom font and release its storage allocation.
+
+Parameters:
+  - name (path, required): The font name.
+
+Auth: subscription. Cost class: 1. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### renderStaticMap
+
+POST /api/render/static — Render a static map
+
+Renders a viewport and overlays as a PNG. Dark and light styles use raster tiles; other style names use vector rendering. The x-mapsource-render header includes style, dataset, result-handle, render-engine, and request metadata.
+
+When to use: Generate static maps for reports, previews, and geographic visualizations.
+When not to use: Use data endpoints for feature attributes or editable geometry.
+
+Parameters:
+  - lat (body): Viewport centre latitude. [min -85.05112878, max 85.05112878]
+  - lon (body): Viewport centre longitude. [min -180, max 180]
+  - zoom (body): Zoom level. [min 0, max 19]
+  - bbox (body): [west, south, east, north]; fits the viewport to it.
+  - width (body): Image width. [min 64, max 2048, default 800]
+  - height (body): Image height. [min 64, max 2048, default 600]
+  - style (body): dark or light composite raster; any other name is a preset or saved profile rendered as vector. [default "dark"]
+  - styleRevision (body): Saved profile revision to use for rendering. [min 1]
+  - bearing (body): Vector renders only. [min -180, max 180, default 0]
+  - pitch (body): Vector renders only. [min 0, max 60, default 0]
+  - geojson (body): GeoJSON to draw, or a result handle.
+  - markers (body): Up to fifty markers with optional labels. [max 50]
+
+Auth: subscription. Cost class: 8. Latency: batch. Deterministic: yes.
+Accepts handles: feature_collection, route, isochrone, analysis, place_collection.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, HANDLE_EXPIRED, NOT_FOUND.
+Through MCP: geo_render with operation static.
+
+### getVectorTile
+
+GET /api/tiles/vector/{z}/{x}/{y}.pbf — Read a vector tile
+
+OpenMapTiles-schema Mapbox Vector Tile.
+
+When to use: Render or inspect vector features in a map client. Configure source zoom using nativeMaxZoom.
+
+Parameters:
+  - z (path, required): Zoom. [min 0, max 20]
+  - x (path, required): Tile column.
+  - y (path, required): Tile row.
+
+Auth: subscription. Cost class: 1. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+REST only; no MCP tool maps to this operation.
+
+### getRasterTile
+
+GET /api/tiles/{style}/{z}/{x}/{y}.png — Read a raster basemap tile
+
+A rendered 256-pixel CARTO basemap tile.
+
+When to use: Display a pre-rendered dark or light basemap without style compilation.
+
+Parameters:
+  - style (path, required): dark or light. [one of dark, light]
+  - z (path, required): Zoom. [min 0, max 20]
+  - x (path, required): Tile column.
+  - y (path, required): Tile row.
+
+Auth: subscription. Cost class: 1. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+REST only; no MCP tool maps to this operation.
+
+### readGlyphRange
+
+GET /api/glyphs/{fontstack}/{range}.pbf — Read an SDF glyph range
+
+Returns SDF glyphs for a fontstack. For multi-face stacks, the first face containing the requested range is used.
+
+When to use: Supply label glyphs to a MapLibre client rendering a compiled style.
+
+Parameters:
+  - fontstack (path, required): One face, or several separated by commas.
+  - range (path, required): A 256-codepoint range such as 0-255.
+
+Auth: public. Cost class: 0. Latency: instant. Deterministic: yes.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, NOT_FOUND.
+REST only; no MCP tool maps to this operation.
+
+### readUsage
+
+GET /api/usage — Read usage for this key
+
+Returns accepted-request totals, plan limits, and the quota reset time for the authenticated key.
+
+When to use: Monitor consumption and remaining allowance before additional requests.
+
+Parameters:
+  (no parameters)
+
+Auth: subscription. Cost class: 0. Latency: instant. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR.
+Through MCP: geo_data with operation usage.
+
+### paidOverpassQuery
+
+POST /api/x402/interpreter — Execute an Overpass query with x402
+
+Executes a bounded JSON-output Overpass QL query using per-request x402 payment.
+
+When to use: Submit a query using an authorized compatible wallet without a subscription key.
+When not to use: Use the subscription interpreter when an API key is available. Query payments do not include tiles or elevation.
+
+Parameters:
+  - query (body, required): Overpass QL using [out:json]. Send a JSON object with this field. [min length 1, max length 131072]
+
+Auth: x402-eligible. Cost class: 5. Latency: slow. Deterministic: no.
+Error codes: AUTH_REQUIRED, INVALID_KEY, RATE_LIMITED, MONTHLY_QUOTA_EXHAUSTED, INTERNAL_ERROR, PAYMENT_REQUIRED, QUERY_TOO_LARGE, RESPONSE_TOO_LARGE.
+REST only; no MCP tool maps to this operation.
+
+## Machine payment
+
+Read the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.
+
+Endpoint: POST https://mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://mapsource.io/api/status.
+
+## Attribution
+
+OpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://mapsource.io/attribution.

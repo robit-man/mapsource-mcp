@@ -1,0 +1,92 @@
+{
+  "name": "mapsource-mcp",
+  "version": "0.1.0",
+  "description": "Official local stdio adapter for the hosted Mapsource geospatial MCP server.",
+  "type": "module",
+  "packageManager": "npm@11.19.1",
+  "license": "MIT",
+  "author": "Mapsource",
+  "homepage": "https://mapsource.io/docs/agents",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robit-man/mapsource-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/robit-man/mapsource-mcp/issues"
+  },
+  "mcpName": "io.github.robit-man/mapsource",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mapsource",
+    "openstreetmap",
+    "overpass-api",
+    "geospatial",
+    "routing",
+    "geocoding",
+    "ai-agents"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "files": [
+    "dist",
+    "contracts",
+    "docs",
+    "server.json",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE",
+    "llms.txt"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./tools": {
+      "types": "./dist/generated/tools.d.ts",
+      "import": "./dist/generated/tools.js"
+    },
+    "./mcp.json": "./contracts/mcp.json",
+    "./openapi.json": "./contracts/openapi.json",
+    "./llms.txt": "./llms.txt",
+    "./llms-full.txt": "./contracts/llms-full.txt",
+    "./server.json": "./server.json",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "mapsource-mcp": "./dist/cli.js"
+  },
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "sync:contracts": "node scripts/sync-contracts.mjs",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:smoke": "node scripts/smoke-package.mjs",
+    "check:package": "node scripts/check-package.mjs",
+    "validate": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run test:smoke && npm run check:package",
+    "validate:release": "node scripts/release-check.mjs",
+    "publish:verified": "node scripts/publish.mjs",
+    "prepublishOnly": "npm run validate"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.3.1",
+    "eslint": "10.9.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.69.0",
+    "vitest": "4.1.11"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
