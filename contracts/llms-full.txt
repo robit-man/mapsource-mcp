@@ -2,6 +2,10 @@
 
 Endpoint reference with authentication requirements, parameters, constraints, result types, and error codes.
 
+## Base URL
+
+On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host.
+
 ## Authentication
 
 Authenticated endpoints require `Authorization: Bearer $MAPSOURCE_API_KEY`. Keep keys in secret storage, outside URLs and public client bundles. Subscription keys are available at https://mapsource.io/pricing?focus=plans. Access requirements are listed for each operation.

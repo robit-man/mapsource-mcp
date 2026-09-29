@@ -3,7 +3,12 @@
   "info": {
     "title": "Mapsource Overpass API",
     "version": "1.0.0",
-    "description": "REST API for OpenStreetMap queries, local address and business search, regional POI discovery, routing, spatial analysis, basemap styling, tiles, elevation, and static maps. Authenticated requests use a Bearer API key. Supported operations accept result handles for server-side processing of intermediate data.\n\n\n## Machine payment\n\nRead the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.\n\nEndpoint: POST https://api.mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/api/status.\n\n## Attribution\n\nOpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://api.mapsource.io/attribution.\n"
+    "description": "REST API for OpenStreetMap queries, local address and business search, regional POI discovery, routing, spatial analysis, basemap styling, tiles, elevation, and static maps. Authenticated requests use a Bearer API key. Supported operations accept result handles for server-side processing of intermediate data.\n\nOn https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host.\n\n\n## Machine payment\n\nRead the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.\n\nEndpoint: POST https://api.mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/api/status.\n\n## Attribution\n\nOpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://api.mapsource.io/attribution.\n"
+  },
+  "x-mapsource-path-aliases": {
+    "origin": "https://api.mapsource.io",
+    "stripPrefix": "/api",
+    "description": "On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host."
   },
   "servers": [
     {
@@ -66,6 +71,20 @@
                         "ready": {
                           "type": "boolean",
                           "description": "True when the engine answers and reports a parseable version."
+                        },
+                        "complete": {
+                          "description": "Whether sentinel objects and densities every complete planet holds are present; false means results are missing data, null means not yet measured.",
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "completenessCheckedAt": {
+                          "description": "When completeness was last measured.",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
                         "version": {
                           "anyOf": [
@@ -175,6 +194,8 @@
                       },
                       "required": [
                         "ready",
+                        "complete",
+                        "completenessCheckedAt",
                         "version",
                         "commit",
                         "displayVersion",
@@ -322,6 +343,223 @@
                         "additionalProperties": false
                       },
                       "description": "Each dataset's serving engine build and data snapshot, read from the backend that owns it."
+                    },
+                    "indexes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "service": {
+                            "type": "string",
+                            "enum": [
+                              "overpass",
+                              "vector-tiles",
+                              "tiles",
+                              "routing",
+                              "local-search",
+                              "contours",
+                              "places"
+                            ]
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "ready",
+                              "degraded",
+                              "building",
+                              "failed",
+                              "unknown"
+                            ]
+                          },
+                          "builtAt": {
+                            "description": "When the serving index was built or its data was cut.",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "detail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "builds": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "target": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "description": "What is being built, such as the generation name."
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "building",
+                                    "complete",
+                                    "failed"
+                                  ]
+                                },
+                                "phase": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "phaseIndex": {
+                                  "type": "integer",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "phaseCount": {
+                                  "type": "integer",
+                                  "exclusiveMinimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "phases": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "label": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "state": {
+                                        "type": "string",
+                                        "enum": [
+                                          "pending",
+                                          "active",
+                                          "done",
+                                          "failed"
+                                        ]
+                                      },
+                                      "progress": {
+                                        "anyOf": [
+                                          {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "maximum": 1
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ],
+                                        "description": "Fraction complete, measured from the input the step has consumed; null when the step reports no measurable progress."
+                                      },
+                                      "bytesDone": {
+                                        "anyOf": [
+                                          {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 9007199254740991
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      },
+                                      "bytesTotal": {
+                                        "anyOf": [
+                                          {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 9007199254740991
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      },
+                                      "etaSeconds": {
+                                        "anyOf": [
+                                          {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 9007199254740991
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ],
+                                        "description": "Remaining time at the rate observed over the last ten minutes; null until two samples exist."
+                                      },
+                                      "detail": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "label",
+                                      "state",
+                                      "progress",
+                                      "bytesDone",
+                                      "bytesTotal",
+                                      "etaSeconds",
+                                      "detail"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "detail": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                                  "description": "When the build reporter last sampled this build."
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "target",
+                                "state",
+                                "phase",
+                                "phaseIndex",
+                                "phaseCount",
+                                "phases",
+                                "detail",
+                                "updatedAt"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "service",
+                          "label",
+                          "state",
+                          "builtAt",
+                          "detail",
+                          "builds"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Index state per service, with measured progress for builds in flight."
                     },
                     "engine": {
                       "type": "object",
@@ -634,6 +872,7 @@
                     "gateway",
                     "overpass",
                     "datasets",
+                    "indexes",
                     "engine",
                     "services",
                     "subsystems",

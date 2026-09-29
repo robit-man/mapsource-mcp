@@ -10,6 +10,10 @@
 - [Service status and dataset freshness](https://api.mapsource.io/api/status)
 - [Semantic basemap contract](https://api.mapsource.io/api/basemap/contract)
 
+## Base URL
+
+On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host.
+
 ## meta
 
 - `readServiceStatus` — GET https://api.mapsource.io/api/status: Read per-subsystem availability and dataset freshness. Monitor service availability, dataset freshness, payment settlement readiness, and the engine and dataset versions behind each answer.

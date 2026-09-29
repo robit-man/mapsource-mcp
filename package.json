@@ -1,6 +1,6 @@
 {
   "name": "mapsource-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Official local stdio adapter for the hosted Mapsource geospatial MCP server.",
   "type": "module",
   "packageManager": "npm@11.19.1",

@@ -32,6 +32,8 @@ MAPSOURCE_API_KEY="$MAPSOURCE_API_KEY" npx mapsource-mcp --check
 
 Clients that support Streamable HTTP and protected headers can connect directly to `https://api.mapsource.io/mcp` with `Authorization: Bearer …`; the adapter exists for stdio-first clients.
 
+The MCP endpoint stays `/mcp`. If an agent also calls the REST API directly, every `/api/...` path on `https://api.mapsource.io` works with or without the `/api` prefix (`/api/interpreter` or `/interpreter`); the server card at `https://api.mapsource.io/mcp.json` states this under `pathAliases`, and the hosted server includes it in the instructions it sends at connection time.
+
 ## Complete tool surface
 
 The adapter discovers tool definitions from the deployed service at connection time, so a stale install does not conceal new server tools. This release also ships a provenance-recorded snapshot of all 13 tools:

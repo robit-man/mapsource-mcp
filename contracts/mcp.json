@@ -9,6 +9,11 @@
     "endpoint": "https://api.mapsource.io/mcp"
   },
   "documentation": "https://api.mapsource.io/api/openapi.json",
+  "pathAliases": {
+    "origin": "https://api.mapsource.io",
+    "stripPrefix": "/api",
+    "description": "On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host."
+  },
   "contract": "https://api.mapsource.io/llms-full.txt",
   "tools": [
     "geo_data",
