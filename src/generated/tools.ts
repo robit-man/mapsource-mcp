@@ -80,7 +80,7 @@ export const toolDefinitions = [
         "status": {
           "id": "readServiceStatus",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/status",
+          "path": "https://api.mapsource.io/status",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": false
@@ -88,7 +88,7 @@ export const toolDefinitions = [
         "metrics": {
           "id": "readMetrics",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/metrics",
+          "path": "https://api.mapsource.io/metrics",
           "quotaWeight": 0,
           "latencyClass": "fast",
           "deterministic": false
@@ -96,7 +96,7 @@ export const toolDefinitions = [
         "basemaps": {
           "id": "readBasemapCatalog",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/tiles/catalog",
+          "path": "https://api.mapsource.io/tiles/catalog",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -104,7 +104,7 @@ export const toolDefinitions = [
         "elevation": {
           "id": "sampleElevation",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/elevation",
+          "path": "https://api.mapsource.io/elevation",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": true
@@ -112,7 +112,7 @@ export const toolDefinitions = [
         "terrain": {
           "id": "getTerrainTile",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/terrain/{z}/{x}/{y}.png",
+          "path": "https://api.mapsource.io/terrain/{z}/{x}/{y}.png",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": true
@@ -120,7 +120,7 @@ export const toolDefinitions = [
         "contours": {
           "id": "generateContours",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/contours",
+          "path": "https://api.mapsource.io/contours",
           "quotaWeight": 4,
           "latencyClass": "slow",
           "deterministic": true
@@ -128,7 +128,7 @@ export const toolDefinitions = [
         "usage": {
           "id": "readUsage",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/usage",
+          "path": "https://api.mapsource.io/usage",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": false
@@ -250,7 +250,7 @@ export const toolDefinitions = [
         "explain": {
           "id": "readBasemapContract",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/basemap/contract",
+          "path": "https://api.mapsource.io/basemap/contract",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -258,7 +258,7 @@ export const toolDefinitions = [
         "list": {
           "id": "listStyles",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/styles",
+          "path": "https://api.mapsource.io/styles",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -266,7 +266,7 @@ export const toolDefinitions = [
         "preview": {
           "id": "compileStyle",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/styles/compile",
+          "path": "https://api.mapsource.io/styles/compile",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": true
@@ -274,7 +274,7 @@ export const toolDefinitions = [
         "save": {
           "id": "saveStyleProfile",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/styles/profiles",
+          "path": "https://api.mapsource.io/styles/profiles",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": true
@@ -282,7 +282,7 @@ export const toolDefinitions = [
         "intent": {
           "id": "generateStyleFromIntent",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/styles/intent",
+          "path": "https://api.mapsource.io/styles/intent",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": true
@@ -290,7 +290,7 @@ export const toolDefinitions = [
         "schema": {
           "id": "readStyleSchema",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/styles/schema.json",
+          "path": "https://api.mapsource.io/styles/schema.json",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -298,7 +298,7 @@ export const toolDefinitions = [
         "revisions": {
           "id": "listStyleRevisions",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/styles/{id}/revisions",
+          "path": "https://api.mapsource.io/styles/{id}/revisions",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -306,7 +306,7 @@ export const toolDefinitions = [
         "diff": {
           "id": "diffStyleRevisions",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/styles/{id}/diff",
+          "path": "https://api.mapsource.io/styles/{id}/diff",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -314,7 +314,7 @@ export const toolDefinitions = [
         "delete": {
           "id": "deleteStyleProfile",
           "method": "DELETE",
-          "path": "https://api.mapsource.io/api/styles/profiles/{id}",
+          "path": "https://api.mapsource.io/styles/profiles/{id}",
           "quotaWeight": 1,
           "latencyClass": "instant",
           "deterministic": true
@@ -322,7 +322,7 @@ export const toolDefinitions = [
         "fonts": {
           "id": "listFontstacks",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/glyphs",
+          "path": "https://api.mapsource.io/glyphs",
           "quotaWeight": 0,
           "latencyClass": "instant",
           "deterministic": true
@@ -330,7 +330,7 @@ export const toolDefinitions = [
         "upload_font": {
           "id": "uploadFont",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/fonts",
+          "path": "https://api.mapsource.io/fonts",
           "quotaWeight": 6,
           "latencyClass": "batch",
           "deterministic": true
@@ -515,7 +515,7 @@ export const toolDefinitions = [
         "overpass": {
           "id": "queryOverpass",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/interpreter",
+          "path": "https://api.mapsource.io/interpreter",
           "quotaWeight": 5,
           "latencyClass": "slow",
           "deterministic": false
@@ -523,7 +523,7 @@ export const toolDefinitions = [
         "resolve": {
           "id": "resolveEntity",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/entities/resolve",
+          "path": "https://api.mapsource.io/entities/resolve",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": true
@@ -531,7 +531,7 @@ export const toolDefinitions = [
         "entity": {
           "id": "readEntity",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/entities/{entityId}",
+          "path": "https://api.mapsource.io/entities/{entityId}",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": true
@@ -539,7 +539,7 @@ export const toolDefinitions = [
         "search": {
           "id": "searchPlaces",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/places/search",
+          "path": "https://api.mapsource.io/places/search",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": true
@@ -547,7 +547,7 @@ export const toolDefinitions = [
         "lookup": {
           "id": "lookupPlaces",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/places/lookup",
+          "path": "https://api.mapsource.io/places/lookup",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": false
@@ -555,7 +555,7 @@ export const toolDefinitions = [
         "discover": {
           "id": "discoverPlaces",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/places/discover",
+          "path": "https://api.mapsource.io/places/discover",
           "quotaWeight": 0,
           "latencyClass": "slow",
           "deterministic": false
@@ -563,7 +563,7 @@ export const toolDefinitions = [
         "autocomplete": {
           "id": "autocompletePlaces",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/places/autocomplete",
+          "path": "https://api.mapsource.io/places/autocomplete",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": true
@@ -571,7 +571,7 @@ export const toolDefinitions = [
         "nearby": {
           "id": "findNearby",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/places/nearby",
+          "path": "https://api.mapsource.io/places/nearby",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": false
@@ -579,7 +579,7 @@ export const toolDefinitions = [
         "reverse": {
           "id": "reverseGeocode",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/places/reverse",
+          "path": "https://api.mapsource.io/places/reverse",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": false
@@ -587,7 +587,7 @@ export const toolDefinitions = [
         "details": {
           "id": "readPlace",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/places/{osmType}/{osmId}",
+          "path": "https://api.mapsource.io/places/{osmType}/{osmId}",
           "quotaWeight": 1,
           "latencyClass": "fast",
           "deterministic": false
@@ -595,7 +595,7 @@ export const toolDefinitions = [
         "geocode": {
           "id": "forwardGeocode",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/geocode",
+          "path": "https://api.mapsource.io/geocode",
           "quotaWeight": 2,
           "latencyClass": "slow",
           "deterministic": false
@@ -709,7 +709,7 @@ export const toolDefinitions = [
         "route": {
           "id": "computeRoute",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/route",
+          "path": "https://api.mapsource.io/route",
           "quotaWeight": 3,
           "latencyClass": "fast",
           "deterministic": false
@@ -717,7 +717,7 @@ export const toolDefinitions = [
         "matrix": {
           "id": "computeMatrix",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/matrix",
+          "path": "https://api.mapsource.io/matrix",
           "quotaWeight": 8,
           "latencyClass": "slow",
           "deterministic": false
@@ -725,7 +725,7 @@ export const toolDefinitions = [
         "isochrone": {
           "id": "computeIsochrone",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/isochrone",
+          "path": "https://api.mapsource.io/isochrone",
           "quotaWeight": 6,
           "latencyClass": "slow",
           "deterministic": false
@@ -733,7 +733,7 @@ export const toolDefinitions = [
         "map_match": {
           "id": "matchTrace",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/map-match",
+          "path": "https://api.mapsource.io/map-match",
           "quotaWeight": 5,
           "latencyClass": "slow",
           "deterministic": false
@@ -741,7 +741,7 @@ export const toolDefinitions = [
         "snap": {
           "id": "snapPoints",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/snap",
+          "path": "https://api.mapsource.io/snap",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": false
@@ -749,7 +749,7 @@ export const toolDefinitions = [
         "optimize": {
           "id": "optimizeOrder",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/optimize",
+          "path": "https://api.mapsource.io/optimize",
           "quotaWeight": 8,
           "latencyClass": "slow",
           "deterministic": false
@@ -838,7 +838,7 @@ export const toolDefinitions = [
         "analyze": {
           "id": "analyzeGeometry",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/analyze",
+          "path": "https://api.mapsource.io/analyze",
           "quotaWeight": 2,
           "latencyClass": "fast",
           "deterministic": true
@@ -846,7 +846,7 @@ export const toolDefinitions = [
         "pipeline": {
           "id": "runPipeline",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/compute",
+          "path": "https://api.mapsource.io/compute",
           "quotaWeight": 10,
           "latencyClass": "batch",
           "deterministic": false
@@ -854,7 +854,7 @@ export const toolDefinitions = [
         "result": {
           "id": "readResult",
           "method": "GET",
-          "path": "https://api.mapsource.io/api/results/{id}",
+          "path": "https://api.mapsource.io/results/{id}",
           "quotaWeight": 1,
           "latencyClass": "instant",
           "deterministic": true
@@ -960,7 +960,7 @@ export const toolDefinitions = [
         "static": {
           "id": "renderStaticMap",
           "method": "POST",
-          "path": "https://api.mapsource.io/api/render/static",
+          "path": "https://api.mapsource.io/render/static",
           "quotaWeight": 8,
           "latencyClass": "batch",
           "deterministic": true

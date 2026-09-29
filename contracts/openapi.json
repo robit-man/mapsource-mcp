@@ -3,21 +3,25 @@
   "info": {
     "title": "Mapsource Overpass API",
     "version": "1.0.0",
-    "description": "REST API for OpenStreetMap queries, local address and business search, regional POI discovery, routing, spatial analysis, basemap styling, tiles, elevation, and static maps. Authenticated requests use a Bearer API key. Supported operations accept result handles for server-side processing of intermediate data.\n\nOn https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host.\n\n\n## Machine payment\n\nRead the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.\n\nEndpoint: POST https://api.mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/api/status.\n\n## Attribution\n\nOpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://api.mapsource.io/attribution.\n"
+    "description": "REST API for OpenStreetMap queries, local address and business search, regional POI discovery, routing, spatial analysis, basemap styling, tiles, elevation, and static maps. Authenticated requests use a Bearer API key. Supported operations accept result handles for server-side processing of intermediate data.\n\nPaths are relative to https://api.mapsource.io. Every path also works with an /api prefix (https://api.mapsource.io/api/interpreter), the form https://mapsource.io serves.\n\n\n## Machine payment\n\nRead the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.\n\nEndpoint: POST https://api.mapsource.io/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/status.\n\n## Attribution\n\nOpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://api.mapsource.io/attribution.\n"
   },
   "x-mapsource-path-aliases": {
     "origin": "https://api.mapsource.io",
-    "stripPrefix": "/api",
-    "description": "On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host."
+    "prefix": "/api",
+    "description": "Every path also works with an /api prefix (https://api.mapsource.io/api/interpreter), the form https://mapsource.io serves."
   },
   "servers": [
     {
       "url": "https://api.mapsource.io",
-      "description": "Mapsource production"
+      "description": "Mapsource API"
+    },
+    {
+      "url": "https://mapsource.io/api",
+      "description": "Same API on the website host"
     }
   ],
   "paths": {
-    "/api/status": {
+    "/status": {
       "get": {
         "operationId": "readServiceStatus",
         "summary": "Read per-subsystem availability and dataset freshness",
@@ -1384,7 +1388,7 @@
         }
       }
     },
-    "/api/metrics": {
+    "/metrics": {
       "get": {
         "operationId": "readMetrics",
         "summary": "Read request rates, latencies and data freshness",
@@ -1995,7 +1999,7 @@
         }
       }
     },
-    "/api/tiles/catalog": {
+    "/tiles/catalog": {
       "get": {
         "operationId": "readBasemapCatalog",
         "summary": "Discover basemap tile sources",
@@ -2030,6 +2034,26 @@
                             "type": "integer"
                           },
                           "url": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "styledRaster": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "tileSize": {
+                          "type": "integer"
+                        },
+                        "maxzoom": {
+                          "type": "integer"
+                        },
+                        "presets": {
+                          "type": "array",
+                          "items": {
                             "type": "string"
                           }
                         }
@@ -2594,7 +2618,7 @@
         }
       }
     },
-    "/api/basemap/contract": {
+    "/basemap/contract": {
       "get": {
         "operationId": "readBasemapContract",
         "summary": "Read the semantic basemap layer namespace",
@@ -3129,7 +3153,7 @@
         }
       }
     },
-    "/api/interpreter": {
+    "/interpreter": {
       "post": {
         "operationId": "queryOverpass",
         "summary": "Execute an Overpass QL query",
@@ -4283,7 +4307,7 @@
         }
       }
     },
-    "/api/{key}/interpreter": {
+    "/{key}/interpreter": {
       "post": {
         "operationId": "queryOverpassCompat",
         "summary": "Execute Overpass QL with the key in the path",
@@ -5457,7 +5481,7 @@
         }
       }
     },
-    "/api/entities/resolve": {
+    "/entities/resolve": {
       "get": {
         "operationId": "resolveEntity",
         "summary": "Resolve a name to a geographic entity",
@@ -6088,7 +6112,7 @@
         }
       }
     },
-    "/api/entities/{entityId}": {
+    "/entities/{entityId}": {
       "get": {
         "operationId": "readEntity",
         "summary": "Read an entity by its id",
@@ -6630,7 +6654,7 @@
         }
       }
     },
-    "/api/places/search": {
+    "/places/search": {
       "get": {
         "operationId": "searchPlaces",
         "summary": "Resolve a place name to a coordinate",
@@ -7285,7 +7309,7 @@
         }
       }
     },
-    "/api/places/lookup": {
+    "/places/lookup": {
       "get": {
         "operationId": "lookupPlaces",
         "summary": "Look up addresses, businesses and places",
@@ -8027,7 +8051,7 @@
         }
       }
     },
-    "/api/places/discover": {
+    "/places/discover": {
       "post": {
         "operationId": "discoverPlaces",
         "summary": "Find businesses and POIs in a region",
@@ -8782,7 +8806,7 @@
         }
       }
     },
-    "/api/places/autocomplete": {
+    "/places/autocomplete": {
       "get": {
         "operationId": "autocompletePlaces",
         "summary": "Prefix-match a place name",
@@ -9420,7 +9444,7 @@
         }
       }
     },
-    "/api/places/nearby": {
+    "/places/nearby": {
       "get": {
         "operationId": "findNearby",
         "summary": "Find features within a radius",
@@ -10065,7 +10089,7 @@
         }
       }
     },
-    "/api/places/reverse": {
+    "/places/reverse": {
       "get": {
         "operationId": "reverseGeocode",
         "summary": "Reverse geocode a coordinate",
@@ -10692,7 +10716,7 @@
         }
       }
     },
-    "/api/places/{osmType}/{osmId}": {
+    "/places/{osmType}/{osmId}": {
       "get": {
         "operationId": "readPlace",
         "summary": "Read one feature by its OSM identity",
@@ -11302,7 +11326,7 @@
         }
       }
     },
-    "/api/geocode": {
+    "/geocode": {
       "get": {
         "operationId": "forwardGeocode",
         "summary": "Geocode through the compatibility provider",
@@ -11844,7 +11868,7 @@
         }
       }
     },
-    "/api/route": {
+    "/route": {
       "post": {
         "operationId": "computeRoute",
         "summary": "Compute a turn-by-turn route",
@@ -12540,7 +12564,7 @@
         }
       }
     },
-    "/api/matrix": {
+    "/matrix": {
       "post": {
         "operationId": "computeMatrix",
         "summary": "Compute a travel-time and distance matrix",
@@ -13224,7 +13248,7 @@
         }
       }
     },
-    "/api/isochrone": {
+    "/isochrone": {
       "post": {
         "operationId": "computeIsochrone",
         "summary": "Compute reachable-area polygons",
@@ -13919,7 +13943,7 @@
         }
       }
     },
-    "/api/map-match": {
+    "/map-match": {
       "post": {
         "operationId": "matchTrace",
         "summary": "Fit a GPS trace to the road network",
@@ -14595,7 +14619,7 @@
         }
       }
     },
-    "/api/snap": {
+    "/snap": {
       "post": {
         "operationId": "snapPoints",
         "summary": "Snap points to the road network",
@@ -15246,7 +15270,7 @@
         }
       }
     },
-    "/api/optimize": {
+    "/optimize": {
       "post": {
         "operationId": "optimizeOrder",
         "summary": "Solve the visit order for a set of stops",
@@ -15914,7 +15938,7 @@
         }
       }
     },
-    "/api/analyze": {
+    "/analyze": {
       "post": {
         "operationId": "analyzeGeometry",
         "summary": "Run a spatial analysis",
@@ -16571,7 +16595,7 @@
         }
       }
     },
-    "/api/compute": {
+    "/compute": {
       "post": {
         "operationId": "runPipeline",
         "summary": "Run a multi-step spatial pipeline",
@@ -17208,7 +17232,7 @@
         }
       }
     },
-    "/api/results/{id}": {
+    "/results/{id}": {
       "get": {
         "operationId": "readResult",
         "summary": "Retrieve a held result",
@@ -17837,7 +17861,7 @@
         }
       }
     },
-    "/api/account": {
+    "/account": {
       "get": {
         "operationId": "readAccount",
         "summary": "Read account and credential details",
@@ -18380,7 +18404,7 @@
         }
       }
     },
-    "/api/account/projects": {
+    "/account/projects": {
       "post": {
         "operationId": "createProject",
         "summary": "Create a project",
@@ -18947,7 +18971,7 @@
         }
       }
     },
-    "/api/account/projects/{project}": {
+    "/account/projects/{project}": {
       "delete": {
         "operationId": "archiveProject",
         "summary": "Archive a project",
@@ -19482,7 +19506,7 @@
         }
       }
     },
-    "/api/account/projects/{project}/service-accounts": {
+    "/account/projects/{project}/service-accounts": {
       "get": {
         "operationId": "listServiceAccounts",
         "summary": "List a project's service accounts",
@@ -20589,7 +20613,7 @@
         }
       }
     },
-    "/api/account/projects/{project}/service-accounts/{id}": {
+    "/account/projects/{project}/service-accounts/{id}": {
       "delete": {
         "operationId": "disableServiceAccount",
         "summary": "Disable a service account",
@@ -21133,7 +21157,7 @@
         }
       }
     },
-    "/api/account/projects/{project}/keys": {
+    "/account/projects/{project}/keys": {
       "get": {
         "operationId": "listProjectKeys",
         "summary": "List a project's credentials",
@@ -22253,7 +22277,7 @@
         }
       }
     },
-    "/api/account/projects/{project}/keys/{id}": {
+    "/account/projects/{project}/keys/{id}": {
       "delete": {
         "operationId": "revokeProjectKey",
         "summary": "Revoke a credential",
@@ -22797,7 +22821,7 @@
         }
       }
     },
-    "/api/account/projects/{project}/budget": {
+    "/account/projects/{project}/budget": {
       "put": {
         "operationId": "setProjectBudget",
         "summary": "Set a project usage budget",
@@ -23373,7 +23397,7 @@
         }
       }
     },
-    "/api/account/usage": {
+    "/account/usage": {
       "get": {
         "operationId": "readAccountUsage",
         "summary": "Read usage attributed by project",
@@ -23907,7 +23931,7 @@
         }
       }
     },
-    "/api/account/audit": {
+    "/account/audit": {
       "get": {
         "operationId": "readAccountAudit",
         "summary": "Read the audit trail",
@@ -24438,7 +24462,7 @@
         }
       }
     },
-    "/api/elevation": {
+    "/elevation": {
       "get": {
         "operationId": "sampleElevation",
         "summary": "Sample ground elevation",
@@ -25035,7 +25059,7 @@
         }
       }
     },
-    "/api/terrain/{z}/{x}/{y}.png": {
+    "/terrain/{z}/{x}/{y}.png": {
       "get": {
         "operationId": "getTerrainTile",
         "summary": "Read a terrarium-encoded elevation tile",
@@ -25588,7 +25612,7 @@
         }
       }
     },
-    "/api/contours": {
+    "/contours": {
       "get": {
         "operationId": "generateContours",
         "summary": "Generate banded topographic contours",
@@ -26177,7 +26201,7 @@
         }
       }
     },
-    "/api/styles": {
+    "/styles": {
       "get": {
         "operationId": "listStyles",
         "summary": "List style presets and saved profiles",
@@ -26706,7 +26730,7 @@
         }
       }
     },
-    "/api/styles/{id}/style.json": {
+    "/styles/{id}/style.json": {
       "get": {
         "operationId": "readCompiledStyle",
         "summary": "Read a compiled MapLibre style",
@@ -27250,7 +27274,7 @@
         }
       }
     },
-    "/api/styles/{id}/manifest.json": {
+    "/styles/{id}/manifest.json": {
       "get": {
         "operationId": "readStyleManifest",
         "summary": "Read the semantic manifest behind a style",
@@ -27790,7 +27814,7 @@
         }
       }
     },
-    "/api/styles/compile": {
+    "/styles/compile": {
       "post": {
         "operationId": "compileStyle",
         "summary": "Compile a style manifest",
@@ -28388,7 +28412,7 @@
         }
       }
     },
-    "/api/styles/profiles": {
+    "/styles/profiles": {
       "post": {
         "operationId": "saveStyleProfile",
         "summary": "Save a basemap profile",
@@ -28969,7 +28993,7 @@
         }
       }
     },
-    "/api/styles/intent": {
+    "/styles/intent": {
       "post": {
         "operationId": "generateStyleFromIntent",
         "summary": "Generate a style from a text description",
@@ -29607,7 +29631,7 @@
         }
       }
     },
-    "/api/styles/schema.json": {
+    "/styles/schema.json": {
       "get": {
         "operationId": "readStyleSchema",
         "summary": "Read the semantic style JSON Schema",
@@ -30136,7 +30160,7 @@
         }
       }
     },
-    "/api/styles/{id}/revisions": {
+    "/styles/{id}/revisions": {
       "get": {
         "operationId": "listStyleRevisions",
         "summary": "List a profile's immutable revisions",
@@ -30681,7 +30705,7 @@
         }
       }
     },
-    "/api/styles/{id}/diff": {
+    "/styles/{id}/diff": {
       "get": {
         "operationId": "diffStyleRevisions",
         "summary": "Compare two revisions at the semantic level",
@@ -31250,7 +31274,7 @@
         }
       }
     },
-    "/api/styles/profiles/{id}": {
+    "/styles/profiles/{id}": {
       "delete": {
         "operationId": "deleteStyleProfile",
         "summary": "Delete a saved basemap profile",
@@ -31785,7 +31809,7 @@
         }
       }
     },
-    "/api/glyphs": {
+    "/glyphs": {
       "get": {
         "operationId": "listFontstacks",
         "summary": "List label fontstacks",
@@ -32317,7 +32341,7 @@
         }
       }
     },
-    "/api/fonts": {
+    "/fonts": {
       "post": {
         "operationId": "uploadFont",
         "summary": "Upload a font",
@@ -32882,7 +32906,7 @@
         }
       }
     },
-    "/api/fonts/{name}": {
+    "/fonts/{name}": {
       "delete": {
         "operationId": "deleteFont",
         "summary": "Delete an uploaded font",
@@ -33417,7 +33441,7 @@
         }
       }
     },
-    "/api/render/static": {
+    "/render/static": {
       "post": {
         "operationId": "renderStaticMap",
         "summary": "Render a static map",
@@ -34036,7 +34060,7 @@
         }
       }
     },
-    "/api/tiles/vector/{z}/{x}/{y}.pbf": {
+    "/tiles/vector/{z}/{x}/{y}.pbf": {
       "get": {
         "operationId": "getVectorTile",
         "summary": "Read a vector tile",
@@ -34593,7 +34617,7 @@
         }
       }
     },
-    "/api/tiles/{style}/{z}/{x}/{y}.png": {
+    "/tiles/{style}/{z}/{x}/{y}.png": {
       "get": {
         "operationId": "getRasterTile",
         "summary": "Read a raster basemap tile",
@@ -35163,7 +35187,582 @@
         }
       }
     },
-    "/api/glyphs/{fontstack}/{range}.pbf": {
+    "/tiles/styles/{style}/{z}/{x}/{y}.png": {
+      "get": {
+        "operationId": "renderStyleTile",
+        "summary": "Render a custom style as a raster tile",
+        "description": "Renders a 256-pixel XYZ PNG from any shipped vector preset or an owned saved style profile. A profile can be pinned to a revision.\n\nWhen to use: Display a Mapsource vector preset or fully customized saved style in a raster-only map client.",
+        "tags": [
+          "delivery"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "style",
+            "in": "path",
+            "required": true,
+            "description": "Preset ID or an owned profile slug.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "z",
+            "in": "path",
+            "required": true,
+            "description": "Zoom.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20
+            }
+          },
+          {
+            "name": "x",
+            "in": "path",
+            "required": true,
+            "description": "Tile column.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "y",
+            "in": "path",
+            "required": true,
+            "description": "Tile row.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "query",
+            "required": false,
+            "description": "Optional saved profile revision.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Render a custom style as a raster tile",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error with a stable machine code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "code",
+                        "message",
+                        "requestId",
+                        "retryable"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "BAD_REQUEST",
+                            "AUTH_REQUIRED",
+                            "AMBIGUOUS_CREDENTIAL",
+                            "INVALID_KEY",
+                            "ENTITLEMENT_INACTIVE",
+                            "RATE_LIMITED",
+                            "CONCURRENCY_LIMITED",
+                            "MONTHLY_QUOTA_EXHAUSTED",
+                            "QUERY_TOO_LARGE",
+                            "TIMEOUT_EXCEEDS_PLAN",
+                            "MAXSIZE_EXCEEDS_PLAN",
+                            "ATTIC_UNSUPPORTED",
+                            "RESPONSE_TOO_LARGE",
+                            "UPSTREAM_UNAVAILABLE",
+                            "UPSTREAM_TIMEOUT",
+                            "BILLING_NOT_CONFIGURED",
+                            "BILLING_PROFILE_UNAVAILABLE",
+                            "BILLING_PROVIDER_ERROR",
+                            "CHECKOUT_UNAUTHORIZED",
+                            "CHECKOUT_NOT_READY",
+                            "KEY_ALREADY_CLAIMED",
+                            "ADMIN_AUTH_REQUIRED",
+                            "ADMIN_FORBIDDEN",
+                            "ADMIN_NOT_CONFIGURED",
+                            "NOT_FOUND",
+                            "SCOPE_FORBIDDEN",
+                            "BUDGET_EXCEEDED",
+                            "PAYMENT_REQUIRED",
+                            "PIPELINE_INVALID",
+                            "PIPELINE_STEP_FAILED",
+                            "PIPELINE_DEADLINE_EXCEEDED",
+                            "HANDLE_EXPIRED",
+                            "HANDLE_QUOTA_EXCEEDED",
+                            "STYLE_INVALID",
+                            "PROFILE_LIMIT_REACHED",
+                            "INTERNAL_ERROR"
+                          ],
+                          "description": "Stable machine code. Decide retries from this, not the status class."
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string",
+                          "description": "Quote this when reporting a problem."
+                        },
+                        "retryable": {
+                          "type": "boolean",
+                          "description": "True when the identical request could succeed on a later attempt."
+                        },
+                        "details": {
+                          "type": "object",
+                          "description": "Machine-readable specifics for this code, shaped by the code."
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "level",
+                              "path",
+                              "message"
+                            ],
+                            "properties": {
+                              "level": {
+                                "type": "string",
+                                "enum": [
+                                  "warning",
+                                  "error"
+                                ]
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error with a stable machine code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "code",
+                        "message",
+                        "requestId",
+                        "retryable"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "BAD_REQUEST",
+                            "AUTH_REQUIRED",
+                            "AMBIGUOUS_CREDENTIAL",
+                            "INVALID_KEY",
+                            "ENTITLEMENT_INACTIVE",
+                            "RATE_LIMITED",
+                            "CONCURRENCY_LIMITED",
+                            "MONTHLY_QUOTA_EXHAUSTED",
+                            "QUERY_TOO_LARGE",
+                            "TIMEOUT_EXCEEDS_PLAN",
+                            "MAXSIZE_EXCEEDS_PLAN",
+                            "ATTIC_UNSUPPORTED",
+                            "RESPONSE_TOO_LARGE",
+                            "UPSTREAM_UNAVAILABLE",
+                            "UPSTREAM_TIMEOUT",
+                            "BILLING_NOT_CONFIGURED",
+                            "BILLING_PROFILE_UNAVAILABLE",
+                            "BILLING_PROVIDER_ERROR",
+                            "CHECKOUT_UNAUTHORIZED",
+                            "CHECKOUT_NOT_READY",
+                            "KEY_ALREADY_CLAIMED",
+                            "ADMIN_AUTH_REQUIRED",
+                            "ADMIN_FORBIDDEN",
+                            "ADMIN_NOT_CONFIGURED",
+                            "NOT_FOUND",
+                            "SCOPE_FORBIDDEN",
+                            "BUDGET_EXCEEDED",
+                            "PAYMENT_REQUIRED",
+                            "PIPELINE_INVALID",
+                            "PIPELINE_STEP_FAILED",
+                            "PIPELINE_DEADLINE_EXCEEDED",
+                            "HANDLE_EXPIRED",
+                            "HANDLE_QUOTA_EXCEEDED",
+                            "STYLE_INVALID",
+                            "PROFILE_LIMIT_REACHED",
+                            "INTERNAL_ERROR"
+                          ],
+                          "description": "Stable machine code. Decide retries from this, not the status class."
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string",
+                          "description": "Quote this when reporting a problem."
+                        },
+                        "retryable": {
+                          "type": "boolean",
+                          "description": "True when the identical request could succeed on a later attempt."
+                        },
+                        "details": {
+                          "type": "object",
+                          "description": "Machine-readable specifics for this code, shaped by the code."
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "level",
+                              "path",
+                              "message"
+                            ],
+                            "properties": {
+                              "level": {
+                                "type": "string",
+                                "enum": [
+                                  "warning",
+                                  "error"
+                                ]
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error with a stable machine code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "code",
+                        "message",
+                        "requestId",
+                        "retryable"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "BAD_REQUEST",
+                            "AUTH_REQUIRED",
+                            "AMBIGUOUS_CREDENTIAL",
+                            "INVALID_KEY",
+                            "ENTITLEMENT_INACTIVE",
+                            "RATE_LIMITED",
+                            "CONCURRENCY_LIMITED",
+                            "MONTHLY_QUOTA_EXHAUSTED",
+                            "QUERY_TOO_LARGE",
+                            "TIMEOUT_EXCEEDS_PLAN",
+                            "MAXSIZE_EXCEEDS_PLAN",
+                            "ATTIC_UNSUPPORTED",
+                            "RESPONSE_TOO_LARGE",
+                            "UPSTREAM_UNAVAILABLE",
+                            "UPSTREAM_TIMEOUT",
+                            "BILLING_NOT_CONFIGURED",
+                            "BILLING_PROFILE_UNAVAILABLE",
+                            "BILLING_PROVIDER_ERROR",
+                            "CHECKOUT_UNAUTHORIZED",
+                            "CHECKOUT_NOT_READY",
+                            "KEY_ALREADY_CLAIMED",
+                            "ADMIN_AUTH_REQUIRED",
+                            "ADMIN_FORBIDDEN",
+                            "ADMIN_NOT_CONFIGURED",
+                            "NOT_FOUND",
+                            "SCOPE_FORBIDDEN",
+                            "BUDGET_EXCEEDED",
+                            "PAYMENT_REQUIRED",
+                            "PIPELINE_INVALID",
+                            "PIPELINE_STEP_FAILED",
+                            "PIPELINE_DEADLINE_EXCEEDED",
+                            "HANDLE_EXPIRED",
+                            "HANDLE_QUOTA_EXCEEDED",
+                            "STYLE_INVALID",
+                            "PROFILE_LIMIT_REACHED",
+                            "INTERNAL_ERROR"
+                          ],
+                          "description": "Stable machine code. Decide retries from this, not the status class."
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string",
+                          "description": "Quote this when reporting a problem."
+                        },
+                        "retryable": {
+                          "type": "boolean",
+                          "description": "True when the identical request could succeed on a later attempt."
+                        },
+                        "details": {
+                          "type": "object",
+                          "description": "Machine-readable specifics for this code, shaped by the code."
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "level",
+                              "path",
+                              "message"
+                            ],
+                            "properties": {
+                              "level": {
+                                "type": "string",
+                                "enum": [
+                                  "warning",
+                                  "error"
+                                ]
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error with a stable machine code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "code",
+                        "message",
+                        "requestId",
+                        "retryable"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "BAD_REQUEST",
+                            "AUTH_REQUIRED",
+                            "AMBIGUOUS_CREDENTIAL",
+                            "INVALID_KEY",
+                            "ENTITLEMENT_INACTIVE",
+                            "RATE_LIMITED",
+                            "CONCURRENCY_LIMITED",
+                            "MONTHLY_QUOTA_EXHAUSTED",
+                            "QUERY_TOO_LARGE",
+                            "TIMEOUT_EXCEEDS_PLAN",
+                            "MAXSIZE_EXCEEDS_PLAN",
+                            "ATTIC_UNSUPPORTED",
+                            "RESPONSE_TOO_LARGE",
+                            "UPSTREAM_UNAVAILABLE",
+                            "UPSTREAM_TIMEOUT",
+                            "BILLING_NOT_CONFIGURED",
+                            "BILLING_PROFILE_UNAVAILABLE",
+                            "BILLING_PROVIDER_ERROR",
+                            "CHECKOUT_UNAUTHORIZED",
+                            "CHECKOUT_NOT_READY",
+                            "KEY_ALREADY_CLAIMED",
+                            "ADMIN_AUTH_REQUIRED",
+                            "ADMIN_FORBIDDEN",
+                            "ADMIN_NOT_CONFIGURED",
+                            "NOT_FOUND",
+                            "SCOPE_FORBIDDEN",
+                            "BUDGET_EXCEEDED",
+                            "PAYMENT_REQUIRED",
+                            "PIPELINE_INVALID",
+                            "PIPELINE_STEP_FAILED",
+                            "PIPELINE_DEADLINE_EXCEEDED",
+                            "HANDLE_EXPIRED",
+                            "HANDLE_QUOTA_EXCEEDED",
+                            "STYLE_INVALID",
+                            "PROFILE_LIMIT_REACHED",
+                            "INTERNAL_ERROR"
+                          ],
+                          "description": "Stable machine code. Decide retries from this, not the status class."
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string",
+                          "description": "Quote this when reporting a problem."
+                        },
+                        "retryable": {
+                          "type": "boolean",
+                          "description": "True when the identical request could succeed on a later attempt."
+                        },
+                        "details": {
+                          "type": "object",
+                          "description": "Machine-readable specifics for this code, shaped by the code."
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "level",
+                              "path",
+                              "message"
+                            ],
+                            "properties": {
+                              "level": {
+                                "type": "string",
+                                "enum": [
+                                  "warning",
+                                  "error"
+                                ]
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-mapsource": {
+          "version": "1",
+          "category": "delivery",
+          "quotaWeight": 8,
+          "latencyClass": "batch",
+          "deterministic": true,
+          "errorCodes": [
+            "AUTH_REQUIRED",
+            "INVALID_KEY",
+            "RATE_LIMITED",
+            "MONTHLY_QUOTA_EXHAUSTED",
+            "INTERNAL_ERROR",
+            "NOT_FOUND",
+            "UPSTREAM_UNAVAILABLE"
+          ],
+          "mcp": null
+        }
+      }
+    },
+    "/glyphs/{fontstack}/{range}.pbf": {
       "get": {
         "operationId": "readGlyphRange",
         "summary": "Read an SDF glyph range",
@@ -35702,7 +36301,7 @@
         }
       }
     },
-    "/api/usage": {
+    "/usage": {
       "get": {
         "operationId": "readUsage",
         "summary": "Read usage for this key",
@@ -36236,7 +36835,7 @@
         }
       }
     },
-    "/api/x402/interpreter": {
+    "/x402/interpreter": {
       "post": {
         "operationId": "paidOverpassQuery",
         "summary": "Execute an Overpass query with x402",

@@ -4,98 +4,99 @@
 
 ## API specifications
 
-- [OpenAPI 3.1](https://api.mapsource.io/api/openapi.json)
+- [OpenAPI 3.1](https://api.mapsource.io/openapi.json)
 - [MCP server card](https://api.mapsource.io/mcp.json) — the server itself is Streamable HTTP at https://api.mapsource.io/mcp
 - [Full agent contract](https://api.mapsource.io/llms-full.txt)
-- [Service status and dataset freshness](https://api.mapsource.io/api/status)
-- [Semantic basemap contract](https://api.mapsource.io/api/basemap/contract)
+- [Service status and dataset freshness](https://api.mapsource.io/status)
+- [Semantic basemap contract](https://api.mapsource.io/basemap/contract)
 
 ## Base URL
 
-On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host.
+Paths are relative to https://api.mapsource.io, for example https://api.mapsource.io/interpreter and https://api.mapsource.io/{key}/interpreter. Every path also works with an /api prefix (https://api.mapsource.io/api/interpreter), the form https://mapsource.io serves.
 
 ## meta
 
-- `readServiceStatus` — GET https://api.mapsource.io/api/status: Read per-subsystem availability and dataset freshness. Monitor service availability, dataset freshness, payment settlement readiness, and the engine and dataset versions behind each answer.
-- `readMetrics` — GET https://api.mapsource.io/api/metrics: Read request rates, latencies and data freshness. Monitor performance and identify slow operations or stale datasets.
-- `readBasemapCatalog` — GET https://api.mapsource.io/api/tiles/catalog: Discover basemap tile sources. Configure tile sources and supported zoom levels before initializing a map.
+- `readServiceStatus` — GET https://api.mapsource.io/status: Read per-subsystem availability and dataset freshness. Monitor service availability, dataset freshness, payment settlement readiness, and the engine and dataset versions behind each answer.
+- `readMetrics` — GET https://api.mapsource.io/metrics: Read request rates, latencies and data freshness. Monitor performance and identify slow operations or stale datasets.
+- `readBasemapCatalog` — GET https://api.mapsource.io/tiles/catalog: Discover basemap tile sources. Configure tile sources and supported zoom levels before initializing a map.
 
 ## cartography
 
-- `readBasemapContract` — GET https://api.mapsource.io/api/basemap/contract: Read the semantic basemap layer namespace. Look up layer identifiers and properties when creating or editing a style.
-- `listStyles` — GET https://api.mapsource.io/api/styles: List style presets and saved profiles. Select a preset or retrieve saved basemap profiles.
-- `readCompiledStyle` — GET https://api.mapsource.io/api/styles/{id}/style.json: Read a compiled MapLibre style. Load a preset or saved profile into a MapLibre-compatible client.
-- `readStyleManifest` — GET https://api.mapsource.io/api/styles/{id}/manifest.json: Read the semantic manifest behind a style. Retrieve an existing style's editable semantic properties.
-- `compileStyle` — POST https://api.mapsource.io/api/styles/compile: Compile a style manifest. Validate and preview style changes before saving a profile.
-- `saveStyleProfile` — POST https://api.mapsource.io/api/styles/profiles: Save a basemap profile. Store a style for subsequent retrieval, editing, and rendering.
-- `generateStyleFromIntent` — POST https://api.mapsource.io/api/styles/intent: Generate a style from a text description. Create an initial basemap style from a description, then review the proposed manifest.
-- `readStyleSchema` — GET https://api.mapsource.io/api/styles/schema.json: Read the semantic style JSON Schema. Validate manifests locally or generate editor controls from the schema.
-- `listStyleRevisions` — GET https://api.mapsource.io/api/styles/{id}/revisions: List a profile's immutable revisions. Select a fixed revision for rendering or retrieve an earlier manifest.
-- `diffStyleRevisions` — GET https://api.mapsource.io/api/styles/{id}/diff: Compare two revisions at the semantic level. Review property changes before applying a style revision.
-- `deleteStyleProfile` — DELETE https://api.mapsource.io/api/styles/profiles/{id}: Delete a saved basemap profile. Remove an unused profile or release capacity for a new profile.
-- `listFontstacks` — GET https://api.mapsource.io/api/glyphs: List label fontstacks. Check available font names before configuring label typography.
-- `uploadFont` — POST https://api.mapsource.io/api/fonts: Upload a font. Add a custom label font and inspect its supported Unicode ranges.
-- `deleteFont` — DELETE https://api.mapsource.io/api/fonts/{name}: Delete an uploaded font. Remove an unused custom font and release its storage allocation.
+- `readBasemapContract` — GET https://api.mapsource.io/basemap/contract: Read the semantic basemap layer namespace. Look up layer identifiers and properties when creating or editing a style.
+- `listStyles` — GET https://api.mapsource.io/styles: List style presets and saved profiles. Select a preset or retrieve saved basemap profiles.
+- `readCompiledStyle` — GET https://api.mapsource.io/styles/{id}/style.json: Read a compiled MapLibre style. Load a preset or saved profile into a MapLibre-compatible client.
+- `readStyleManifest` — GET https://api.mapsource.io/styles/{id}/manifest.json: Read the semantic manifest behind a style. Retrieve an existing style's editable semantic properties.
+- `compileStyle` — POST https://api.mapsource.io/styles/compile: Compile a style manifest. Validate and preview style changes before saving a profile.
+- `saveStyleProfile` — POST https://api.mapsource.io/styles/profiles: Save a basemap profile. Store a style for subsequent retrieval, editing, and rendering.
+- `generateStyleFromIntent` — POST https://api.mapsource.io/styles/intent: Generate a style from a text description. Create an initial basemap style from a description, then review the proposed manifest.
+- `readStyleSchema` — GET https://api.mapsource.io/styles/schema.json: Read the semantic style JSON Schema. Validate manifests locally or generate editor controls from the schema.
+- `listStyleRevisions` — GET https://api.mapsource.io/styles/{id}/revisions: List a profile's immutable revisions. Select a fixed revision for rendering or retrieve an earlier manifest.
+- `diffStyleRevisions` — GET https://api.mapsource.io/styles/{id}/diff: Compare two revisions at the semantic level. Review property changes before applying a style revision.
+- `deleteStyleProfile` — DELETE https://api.mapsource.io/styles/profiles/{id}: Delete a saved basemap profile. Remove an unused profile or release capacity for a new profile.
+- `listFontstacks` — GET https://api.mapsource.io/glyphs: List label fontstacks. Check available font names before configuring label typography.
+- `uploadFont` — POST https://api.mapsource.io/fonts: Upload a font. Add a custom label font and inspect its supported Unicode ranges.
+- `deleteFont` — DELETE https://api.mapsource.io/fonts/{name}: Delete an uploaded font. Remove an unused custom font and release its storage allocation.
 
 ## discovery
 
-- `queryOverpass` — POST https://api.mapsource.io/api/interpreter: Execute an Overpass QL query. Query arbitrary OSM tags, spatial relationships, or topology using Overpass QL.
-- `queryOverpassCompat` — POST https://api.mapsource.io/api/{key}/interpreter: Execute Overpass QL with the key in the path. Connect existing Overpass clients that cannot set request headers.
-- `resolveEntity` — GET https://api.mapsource.io/api/entities/resolve: Resolve a name to a geographic entity. Resolve a place once and reference its entity ID in subsequent operations.
-- `readEntity` — GET https://api.mapsource.io/api/entities/{entityId}: Read an entity by its id. Retrieve the name, center, and bounding box associated with an entity ID.
-- `searchPlaces` — GET https://api.mapsource.io/api/places/search: Resolve a place name to a coordinate. Look up a populated place by name and retrieve its coordinates.
-- `lookupPlaces` — GET https://api.mapsource.io/api/places/lookup: Look up addresses, businesses and places. Find an address, business, brand, landmark, street or populated place. Use a location qualifier such as Starbucks in Portland to search away from the map focus.
-- `discoverPlaces` — POST https://api.mapsource.io/api/places/discover: Find businesses and POIs in a region. Find coffee within a 15-minute drive, list businesses in a map viewport, or filter POIs by an existing isochrone. Paginate bounded results; narrow the area when coverage.truncated is true.
-- `autocompletePlaces` — GET https://api.mapsource.io/api/places/autocomplete: Prefix-match a place name. Provide place-name suggestions as a user types.
-- `findNearby` — GET https://api.mapsource.io/api/places/nearby: Find features within a radius. Find nearby amenities, infrastructure, or named features around a coordinate.
-- `reverseGeocode` — GET https://api.mapsource.io/api/places/reverse: Reverse geocode a coordinate. Retrieve a complete locally indexed postal address or place identity associated with a coordinate.
-- `readPlace` — GET https://api.mapsource.io/api/places/{osmType}/{osmId}: Read one feature by its OSM identity. Retrieve details for an OSM object identified by type and ID.
-- `forwardGeocode` — GET https://api.mapsource.io/api/geocode: Geocode through the compatibility provider. Maintain an existing integration that requires the compatibility geocoder's response format.
-- `paidOverpassQuery` — POST https://api.mapsource.io/api/x402/interpreter: Execute an Overpass query with x402. Submit a query using an authorized compatible wallet without a subscription key.
+- `queryOverpass` — POST https://api.mapsource.io/interpreter: Execute an Overpass QL query. Query arbitrary OSM tags, spatial relationships, or topology using Overpass QL.
+- `queryOverpassCompat` — POST https://api.mapsource.io/{key}/interpreter: Execute Overpass QL with the key in the path. Connect existing Overpass clients that cannot set request headers.
+- `resolveEntity` — GET https://api.mapsource.io/entities/resolve: Resolve a name to a geographic entity. Resolve a place once and reference its entity ID in subsequent operations.
+- `readEntity` — GET https://api.mapsource.io/entities/{entityId}: Read an entity by its id. Retrieve the name, center, and bounding box associated with an entity ID.
+- `searchPlaces` — GET https://api.mapsource.io/places/search: Resolve a place name to a coordinate. Look up a populated place by name and retrieve its coordinates.
+- `lookupPlaces` — GET https://api.mapsource.io/places/lookup: Look up addresses, businesses and places. Find an address, business, brand, landmark, street or populated place. Use a location qualifier such as Starbucks in Portland to search away from the map focus.
+- `discoverPlaces` — POST https://api.mapsource.io/places/discover: Find businesses and POIs in a region. Find coffee within a 15-minute drive, list businesses in a map viewport, or filter POIs by an existing isochrone. Paginate bounded results; narrow the area when coverage.truncated is true.
+- `autocompletePlaces` — GET https://api.mapsource.io/places/autocomplete: Prefix-match a place name. Provide place-name suggestions as a user types.
+- `findNearby` — GET https://api.mapsource.io/places/nearby: Find features within a radius. Find nearby amenities, infrastructure, or named features around a coordinate.
+- `reverseGeocode` — GET https://api.mapsource.io/places/reverse: Reverse geocode a coordinate. Retrieve a complete locally indexed postal address or place identity associated with a coordinate.
+- `readPlace` — GET https://api.mapsource.io/places/{osmType}/{osmId}: Read one feature by its OSM identity. Retrieve details for an OSM object identified by type and ID.
+- `forwardGeocode` — GET https://api.mapsource.io/geocode: Geocode through the compatibility provider. Maintain an existing integration that requires the compatibility geocoder's response format.
+- `paidOverpassQuery` — POST https://api.mapsource.io/x402/interpreter: Execute an Overpass query with x402. Submit a query using an authorized compatible wallet without a subscription key.
 
 ## navigation
 
-- `computeRoute` — POST https://api.mapsource.io/api/route: Compute a turn-by-turn route. Retrieve route geometry, directions, distance, and travel time between waypoints.
-- `computeMatrix` — POST https://api.mapsource.io/api/matrix: Compute a travel-time and distance matrix. Compare destinations or build a travel-time matrix for analysis.
-- `computeIsochrone` — POST https://api.mapsource.io/api/isochrone: Compute reachable-area polygons. Calculate service areas, catchments, or accessibility within a travel-time limit.
-- `matchTrace` — POST https://api.mapsource.io/api/map-match: Fit a GPS trace to the road network. Match recorded travel coordinates to the road network.
-- `snapPoints` — POST https://api.mapsource.io/api/snap: Snap points to the road network. Associate coordinates with road segments before routing or analysis.
-- `optimizeOrder` — POST https://api.mapsource.io/api/optimize: Solve the visit order for a set of stops. Plan stop sequences for delivery, fieldwork, or multi-stop travel.
+- `computeRoute` — POST https://api.mapsource.io/route: Compute a turn-by-turn route. Retrieve route geometry, directions, distance, and travel time between waypoints.
+- `computeMatrix` — POST https://api.mapsource.io/matrix: Compute a travel-time and distance matrix. Compare destinations or build a travel-time matrix for analysis.
+- `computeIsochrone` — POST https://api.mapsource.io/isochrone: Compute reachable-area polygons. Calculate service areas, catchments, or accessibility within a travel-time limit.
+- `matchTrace` — POST https://api.mapsource.io/map-match: Fit a GPS trace to the road network. Match recorded travel coordinates to the road network.
+- `snapPoints` — POST https://api.mapsource.io/snap: Snap points to the road network. Associate coordinates with road segments before routing or analysis.
+- `optimizeOrder` — POST https://api.mapsource.io/optimize: Solve the visit order for a set of stops. Plan stop sequences for delivery, fieldwork, or multi-stop travel.
 
 ## compute
 
-- `analyzeGeometry` — POST https://api.mapsource.io/api/analyze: Run a spatial analysis. Measure or transform GeoJSON, coordinates, query results, and result handles.
-- `runPipeline` — POST https://api.mapsource.io/api/compute: Run a multi-step spatial pipeline. Run dependent search, navigation, and analysis without downloading intermediate results.
-- `readResult` — GET https://api.mapsource.io/api/results/{id}: Retrieve a held result. Download a result payload or inspect its metadata before further processing.
+- `analyzeGeometry` — POST https://api.mapsource.io/analyze: Run a spatial analysis. Measure or transform GeoJSON, coordinates, query results, and result handles.
+- `runPipeline` — POST https://api.mapsource.io/compute: Run a multi-step spatial pipeline. Run dependent search, navigation, and analysis without downloading intermediate results.
+- `readResult` — GET https://api.mapsource.io/results/{id}: Retrieve a held result. Download a result payload or inspect its metadata before further processing.
 
 ## account
 
-- `readAccount` — GET https://api.mapsource.io/api/account: Read account and credential details. Inspect account membership, project attribution, and credential permissions.
-- `createProject` — POST https://api.mapsource.io/api/account/projects: Create a project. Separate development, staging, production, or other account workloads.
-- `archiveProject` — DELETE https://api.mapsource.io/api/account/projects/{project}: Archive a project. Deactivate a project that is no longer in use.
-- `listServiceAccounts` — GET https://api.mapsource.io/api/account/projects/{project}/service-accounts: List a project's service accounts. Review service accounts configured for a project's automated workloads.
-- `createServiceAccount` — POST https://api.mapsource.io/api/account/projects/{project}/service-accounts: Create a service account. Assign a dedicated identity to an application, integration, or agent.
-- `disableServiceAccount` — DELETE https://api.mapsource.io/api/account/projects/{project}/service-accounts/{id}: Disable a service account. Revoke access for a workload or compromised service account.
-- `listProjectKeys` — GET https://api.mapsource.io/api/account/projects/{project}/keys: List a project's credentials. Review credentials and access permissions for a project.
-- `issueProjectKey` — POST https://api.mapsource.io/api/account/projects/{project}/keys: Issue a scoped credential. Create a credential with permissions for a specific workload.
-- `revokeProjectKey` — DELETE https://api.mapsource.io/api/account/projects/{project}/keys/{id}: Revoke a credential. Revoke a compromised credential or remove access for a retired workload.
-- `setProjectBudget` — PUT https://api.mapsource.io/api/account/projects/{project}/budget: Set a project usage budget. Set project usage thresholds before automated or high-volume work.
-- `readAccountUsage` — GET https://api.mapsource.io/api/account/usage: Read usage attributed by project. Monitor project-level consumption and allocate usage across workloads.
-- `readAccountAudit` — GET https://api.mapsource.io/api/account/audit: Read the audit trail. Review account changes and the identity responsible for each action.
-- `readUsage` — GET https://api.mapsource.io/api/usage: Read usage for this key. Monitor consumption and remaining allowance before additional requests.
+- `readAccount` — GET https://api.mapsource.io/account: Read account and credential details. Inspect account membership, project attribution, and credential permissions.
+- `createProject` — POST https://api.mapsource.io/account/projects: Create a project. Separate development, staging, production, or other account workloads.
+- `archiveProject` — DELETE https://api.mapsource.io/account/projects/{project}: Archive a project. Deactivate a project that is no longer in use.
+- `listServiceAccounts` — GET https://api.mapsource.io/account/projects/{project}/service-accounts: List a project's service accounts. Review service accounts configured for a project's automated workloads.
+- `createServiceAccount` — POST https://api.mapsource.io/account/projects/{project}/service-accounts: Create a service account. Assign a dedicated identity to an application, integration, or agent.
+- `disableServiceAccount` — DELETE https://api.mapsource.io/account/projects/{project}/service-accounts/{id}: Disable a service account. Revoke access for a workload or compromised service account.
+- `listProjectKeys` — GET https://api.mapsource.io/account/projects/{project}/keys: List a project's credentials. Review credentials and access permissions for a project.
+- `issueProjectKey` — POST https://api.mapsource.io/account/projects/{project}/keys: Issue a scoped credential. Create a credential with permissions for a specific workload.
+- `revokeProjectKey` — DELETE https://api.mapsource.io/account/projects/{project}/keys/{id}: Revoke a credential. Revoke a compromised credential or remove access for a retired workload.
+- `setProjectBudget` — PUT https://api.mapsource.io/account/projects/{project}/budget: Set a project usage budget. Set project usage thresholds before automated or high-volume work.
+- `readAccountUsage` — GET https://api.mapsource.io/account/usage: Read usage attributed by project. Monitor project-level consumption and allocate usage across workloads.
+- `readAccountAudit` — GET https://api.mapsource.io/account/audit: Read the audit trail. Review account changes and the identity responsible for each action.
+- `readUsage` — GET https://api.mapsource.io/usage: Read usage for this key. Monitor consumption and remaining allowance before additional requests.
 
 ## terrain
 
-- `sampleElevation` — GET https://api.mapsource.io/api/elevation: Sample ground elevation. Retrieve terrain height and the raw model elevation at one coordinate.
-- `getTerrainTile` — GET https://api.mapsource.io/api/terrain/{z}/{x}/{y}.png: Read a terrarium-encoded elevation tile. Display hillshading or 3D terrain using the catalog's tile template and zoom range.
-- `generateContours` — GET https://api.mapsource.io/api/contours: Generate banded topographic contours. Display elevation contours or analyze terrain relief around a coordinate.
+- `sampleElevation` — GET https://api.mapsource.io/elevation: Sample ground elevation. Retrieve terrain height and the raw model elevation at one coordinate.
+- `getTerrainTile` — GET https://api.mapsource.io/terrain/{z}/{x}/{y}.png: Read a terrarium-encoded elevation tile. Display hillshading or 3D terrain using the catalog's tile template and zoom range.
+- `generateContours` — GET https://api.mapsource.io/contours: Generate banded topographic contours. Display elevation contours or analyze terrain relief around a coordinate.
 
 ## delivery
 
-- `renderStaticMap` — POST https://api.mapsource.io/api/render/static: Render a static map. Generate static maps for reports, previews, and geographic visualizations.
-- `getVectorTile` — GET https://api.mapsource.io/api/tiles/vector/{z}/{x}/{y}.pbf: Read a vector tile. Render or inspect vector features in a map client. Configure source zoom using nativeMaxZoom.
-- `getRasterTile` — GET https://api.mapsource.io/api/tiles/{style}/{z}/{x}/{y}.png: Read a raster basemap tile. Display a pre-rendered dark or light basemap without style compilation.
-- `readGlyphRange` — GET https://api.mapsource.io/api/glyphs/{fontstack}/{range}.pbf: Read an SDF glyph range. Supply label glyphs to a MapLibre client rendering a compiled style.
+- `renderStaticMap` — POST https://api.mapsource.io/render/static: Render a static map. Generate static maps for reports, previews, and geographic visualizations.
+- `getVectorTile` — GET https://api.mapsource.io/tiles/vector/{z}/{x}/{y}.pbf: Read a vector tile. Render or inspect vector features in a map client. Configure source zoom using nativeMaxZoom.
+- `getRasterTile` — GET https://api.mapsource.io/tiles/{style}/{z}/{x}/{y}.png: Read a raster basemap tile. Display a pre-rendered dark or light basemap without style compilation.
+- `renderStyleTile` — GET https://api.mapsource.io/tiles/styles/{style}/{z}/{x}/{y}.png: Render a custom style as a raster tile. Display a Mapsource vector preset or fully customized saved style in a raster-only map client.
+- `readGlyphRange` — GET https://api.mapsource.io/glyphs/{fontstack}/{range}.pbf: Read an SDF glyph range. Supply label glyphs to a MapLibre client rendering a compiled style.
 
 ## Authentication
 
@@ -117,7 +118,7 @@ Supported operations return large results as handles containing a type, count, b
 
 Read the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.
 
-Endpoint: POST https://api.mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/api/status.
+Endpoint: POST https://api.mapsource.io/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/status.
 
 ## Attribution
 

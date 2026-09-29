@@ -8,11 +8,11 @@
     "type": "streamable-http",
     "endpoint": "https://api.mapsource.io/mcp"
   },
-  "documentation": "https://api.mapsource.io/api/openapi.json",
+  "documentation": "https://api.mapsource.io/openapi.json",
   "pathAliases": {
     "origin": "https://api.mapsource.io",
-    "stripPrefix": "/api",
-    "description": "On https://api.mapsource.io, every /api path also works without the /api prefix: https://api.mapsource.io/interpreter, https://api.mapsource.io/{key}/interpreter, https://api.mapsource.io/status and so on. A client that appends /interpreter to a base URL can use https://api.mapsource.io or https://api.mapsource.io/api. The /api paths listed here are canonical and work on every Mapsource host."
+    "prefix": "/api",
+    "description": "Every path also works with an /api prefix (https://api.mapsource.io/api/interpreter), the form https://mapsource.io serves."
   },
   "contract": "https://api.mapsource.io/llms-full.txt",
   "tools": [
@@ -111,7 +111,7 @@
           "status": {
             "id": "readServiceStatus",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/status",
+            "path": "https://api.mapsource.io/status",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": false
@@ -119,7 +119,7 @@
           "metrics": {
             "id": "readMetrics",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/metrics",
+            "path": "https://api.mapsource.io/metrics",
             "quotaWeight": 0,
             "latencyClass": "fast",
             "deterministic": false
@@ -127,7 +127,7 @@
           "basemaps": {
             "id": "readBasemapCatalog",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/tiles/catalog",
+            "path": "https://api.mapsource.io/tiles/catalog",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -135,7 +135,7 @@
           "elevation": {
             "id": "sampleElevation",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/elevation",
+            "path": "https://api.mapsource.io/elevation",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": true
@@ -143,7 +143,7 @@
           "terrain": {
             "id": "getTerrainTile",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/terrain/{z}/{x}/{y}.png",
+            "path": "https://api.mapsource.io/terrain/{z}/{x}/{y}.png",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": true
@@ -151,7 +151,7 @@
           "contours": {
             "id": "generateContours",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/contours",
+            "path": "https://api.mapsource.io/contours",
             "quotaWeight": 4,
             "latencyClass": "slow",
             "deterministic": true
@@ -159,7 +159,7 @@
           "usage": {
             "id": "readUsage",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/usage",
+            "path": "https://api.mapsource.io/usage",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": false
@@ -281,7 +281,7 @@
           "explain": {
             "id": "readBasemapContract",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/basemap/contract",
+            "path": "https://api.mapsource.io/basemap/contract",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -289,7 +289,7 @@
           "list": {
             "id": "listStyles",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/styles",
+            "path": "https://api.mapsource.io/styles",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -297,7 +297,7 @@
           "preview": {
             "id": "compileStyle",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/styles/compile",
+            "path": "https://api.mapsource.io/styles/compile",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": true
@@ -305,7 +305,7 @@
           "save": {
             "id": "saveStyleProfile",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/styles/profiles",
+            "path": "https://api.mapsource.io/styles/profiles",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": true
@@ -313,7 +313,7 @@
           "intent": {
             "id": "generateStyleFromIntent",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/styles/intent",
+            "path": "https://api.mapsource.io/styles/intent",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": true
@@ -321,7 +321,7 @@
           "schema": {
             "id": "readStyleSchema",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/styles/schema.json",
+            "path": "https://api.mapsource.io/styles/schema.json",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -329,7 +329,7 @@
           "revisions": {
             "id": "listStyleRevisions",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/styles/{id}/revisions",
+            "path": "https://api.mapsource.io/styles/{id}/revisions",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -337,7 +337,7 @@
           "diff": {
             "id": "diffStyleRevisions",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/styles/{id}/diff",
+            "path": "https://api.mapsource.io/styles/{id}/diff",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -345,7 +345,7 @@
           "delete": {
             "id": "deleteStyleProfile",
             "method": "DELETE",
-            "path": "https://api.mapsource.io/api/styles/profiles/{id}",
+            "path": "https://api.mapsource.io/styles/profiles/{id}",
             "quotaWeight": 1,
             "latencyClass": "instant",
             "deterministic": true
@@ -353,7 +353,7 @@
           "fonts": {
             "id": "listFontstacks",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/glyphs",
+            "path": "https://api.mapsource.io/glyphs",
             "quotaWeight": 0,
             "latencyClass": "instant",
             "deterministic": true
@@ -361,7 +361,7 @@
           "upload_font": {
             "id": "uploadFont",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/fonts",
+            "path": "https://api.mapsource.io/fonts",
             "quotaWeight": 6,
             "latencyClass": "batch",
             "deterministic": true
@@ -546,7 +546,7 @@
           "overpass": {
             "id": "queryOverpass",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/interpreter",
+            "path": "https://api.mapsource.io/interpreter",
             "quotaWeight": 5,
             "latencyClass": "slow",
             "deterministic": false
@@ -554,7 +554,7 @@
           "resolve": {
             "id": "resolveEntity",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/entities/resolve",
+            "path": "https://api.mapsource.io/entities/resolve",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": true
@@ -562,7 +562,7 @@
           "entity": {
             "id": "readEntity",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/entities/{entityId}",
+            "path": "https://api.mapsource.io/entities/{entityId}",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": true
@@ -570,7 +570,7 @@
           "search": {
             "id": "searchPlaces",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/places/search",
+            "path": "https://api.mapsource.io/places/search",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": true
@@ -578,7 +578,7 @@
           "lookup": {
             "id": "lookupPlaces",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/places/lookup",
+            "path": "https://api.mapsource.io/places/lookup",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": false
@@ -586,7 +586,7 @@
           "discover": {
             "id": "discoverPlaces",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/places/discover",
+            "path": "https://api.mapsource.io/places/discover",
             "quotaWeight": 0,
             "latencyClass": "slow",
             "deterministic": false
@@ -594,7 +594,7 @@
           "autocomplete": {
             "id": "autocompletePlaces",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/places/autocomplete",
+            "path": "https://api.mapsource.io/places/autocomplete",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": true
@@ -602,7 +602,7 @@
           "nearby": {
             "id": "findNearby",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/places/nearby",
+            "path": "https://api.mapsource.io/places/nearby",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": false
@@ -610,7 +610,7 @@
           "reverse": {
             "id": "reverseGeocode",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/places/reverse",
+            "path": "https://api.mapsource.io/places/reverse",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": false
@@ -618,7 +618,7 @@
           "details": {
             "id": "readPlace",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/places/{osmType}/{osmId}",
+            "path": "https://api.mapsource.io/places/{osmType}/{osmId}",
             "quotaWeight": 1,
             "latencyClass": "fast",
             "deterministic": false
@@ -626,7 +626,7 @@
           "geocode": {
             "id": "forwardGeocode",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/geocode",
+            "path": "https://api.mapsource.io/geocode",
             "quotaWeight": 2,
             "latencyClass": "slow",
             "deterministic": false
@@ -740,7 +740,7 @@
           "route": {
             "id": "computeRoute",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/route",
+            "path": "https://api.mapsource.io/route",
             "quotaWeight": 3,
             "latencyClass": "fast",
             "deterministic": false
@@ -748,7 +748,7 @@
           "matrix": {
             "id": "computeMatrix",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/matrix",
+            "path": "https://api.mapsource.io/matrix",
             "quotaWeight": 8,
             "latencyClass": "slow",
             "deterministic": false
@@ -756,7 +756,7 @@
           "isochrone": {
             "id": "computeIsochrone",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/isochrone",
+            "path": "https://api.mapsource.io/isochrone",
             "quotaWeight": 6,
             "latencyClass": "slow",
             "deterministic": false
@@ -764,7 +764,7 @@
           "map_match": {
             "id": "matchTrace",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/map-match",
+            "path": "https://api.mapsource.io/map-match",
             "quotaWeight": 5,
             "latencyClass": "slow",
             "deterministic": false
@@ -772,7 +772,7 @@
           "snap": {
             "id": "snapPoints",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/snap",
+            "path": "https://api.mapsource.io/snap",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": false
@@ -780,7 +780,7 @@
           "optimize": {
             "id": "optimizeOrder",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/optimize",
+            "path": "https://api.mapsource.io/optimize",
             "quotaWeight": 8,
             "latencyClass": "slow",
             "deterministic": false
@@ -869,7 +869,7 @@
           "analyze": {
             "id": "analyzeGeometry",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/analyze",
+            "path": "https://api.mapsource.io/analyze",
             "quotaWeight": 2,
             "latencyClass": "fast",
             "deterministic": true
@@ -877,7 +877,7 @@
           "pipeline": {
             "id": "runPipeline",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/compute",
+            "path": "https://api.mapsource.io/compute",
             "quotaWeight": 10,
             "latencyClass": "batch",
             "deterministic": false
@@ -885,7 +885,7 @@
           "result": {
             "id": "readResult",
             "method": "GET",
-            "path": "https://api.mapsource.io/api/results/{id}",
+            "path": "https://api.mapsource.io/results/{id}",
             "quotaWeight": 1,
             "latencyClass": "instant",
             "deterministic": true
@@ -991,7 +991,7 @@
           "static": {
             "id": "renderStaticMap",
             "method": "POST",
-            "path": "https://api.mapsource.io/api/render/static",
+            "path": "https://api.mapsource.io/render/static",
             "quotaWeight": 8,
             "latencyClass": "batch",
             "deterministic": true

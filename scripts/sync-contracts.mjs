@@ -105,8 +105,8 @@ try {
   const mcp = json(fetched.mcp.bytes, "MCP card");
   const ids = publishedOperationIds(openapi);
   const definitions = mcp.toolDefinitions ?? [];
-  if (ids.size !== 61 || Object.keys(openapi.paths ?? {}).length !== 57)
-    throw new Error("Expected 61 method operations across 57 OpenAPI paths");
+  if (ids.size !== 62 || Object.keys(openapi.paths ?? {}).length !== 58)
+    throw new Error("Expected 62 method operations across 58 OpenAPI paths");
   if (new Set(mcp.tools ?? []).size !== 13 || definitions.length !== 13)
     throw new Error("Expected 13 MCP tools and definitions");
   const pkg = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));

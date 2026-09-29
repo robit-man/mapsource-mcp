@@ -32,7 +32,7 @@ MAPSOURCE_API_KEY="$MAPSOURCE_API_KEY" npx mapsource-mcp --check
 
 Clients that support Streamable HTTP and protected headers can connect directly to `https://api.mapsource.io/mcp` with `Authorization: Bearer …`; the adapter exists for stdio-first clients.
 
-The MCP endpoint stays `/mcp`. If an agent also calls the REST API directly, every `/api/...` path on `https://api.mapsource.io` works with or without the `/api` prefix (`/api/interpreter` or `/interpreter`); the server card at `https://api.mapsource.io/mcp.json` states this under `pathAliases`, and the hosted server includes it in the instructions it sends at connection time.
+Agents that also call the REST API use the same host, for example `https://api.mapsource.io/interpreter` or `https://api.mapsource.io/{key}/interpreter`; an `/api` prefix also works.
 
 ## Complete tool surface
 
