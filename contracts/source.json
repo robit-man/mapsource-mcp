@@ -1,25 +1,25 @@
 {
-  "origin": "https://mapsource.io",
+  "origin": "https://api.mapsource.io",
   "sources": {
     "openapi": {
-      "url": "https://mapsource.io/api/openapi.json",
-      "sha256": "362f2cd068e318e2e652fefd58e394265815833756f6d286dc459587bb1bbac8",
-      "bytes": 531642
+      "url": "https://api.mapsource.io/api/openapi.json",
+      "sha256": "a42c72de1c8e41906850bb9a4565b41aea601e3b74f9eed7379776bcee01d2cb",
+      "bytes": 539810
     },
     "mcp": {
-      "url": "https://mapsource.io/mcp.json",
-      "sha256": "b371a3a5d2c80a7fba86c14694c4721f5e28c23bf529eebf8015cd14195862d9",
-      "bytes": 29076
+      "url": "https://api.mapsource.io/mcp.json",
+      "sha256": "65cc6b176b5e7d6e4686fdf09423017554ed1d07690f61ee6e5d3809ae003ced",
+      "bytes": 29332
     },
     "llms": {
-      "url": "https://mapsource.io/llms.txt",
-      "sha256": "4a0d7179d73cc1aafc73f3b2ff42f70fc4929a82d9af2697fca133d7cd6d00eb",
-      "bytes": 13859
+      "url": "https://api.mapsource.io/llms.txt",
+      "sha256": "fb64580e5dec153f35a8a27fc7cfb99b3619e79d6eabac0a9d184a919d799e80",
+      "bytes": 14219
     },
     "llmsFull": {
-      "url": "https://mapsource.io/llms-full.txt",
-      "sha256": "3ec1fb6141a3ebaf8c96722f24b81341a88e45bc966bc0608744f9b9dd341a22",
-      "bytes": 52825
+      "url": "https://api.mapsource.io/llms-full.txt",
+      "sha256": "a90fa2c2be5b00dbdc5f190ddd6c22826b81b3c551dcea6511ef01dfa6e998ff",
+      "bytes": 53399
     }
   }
 }

@@ -12,7 +12,7 @@ import { dirname, join, resolve, sep } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const origin = (
-  process.env.MAPSOURCE_CONTRACT_ORIGIN ?? "https://mapsource.io"
+  process.env.MAPSOURCE_CONTRACT_ORIGIN ?? "https://api.mapsource.io"
 ).replace(/\/$/, "");
 const maximumBytes = 8 * 1024 * 1024;
 const safetyFloor = 256 * 1024 * 1024;

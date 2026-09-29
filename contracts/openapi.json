@@ -3,11 +3,11 @@
   "info": {
     "title": "Mapsource Overpass API",
     "version": "1.0.0",
-    "description": "REST API for OpenStreetMap queries, local address and business search, regional POI discovery, routing, spatial analysis, basemap styling, tiles, elevation, and static maps. Authenticated requests use a Bearer API key. Supported operations accept result handles for server-side processing of intermediate data.\n\n\n## Machine payment\n\nRead the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.\n\nEndpoint: POST https://mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://mapsource.io/api/status.\n\n## Attribution\n\nOpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://mapsource.io/attribution.\n"
+    "description": "REST API for OpenStreetMap queries, local address and business search, regional POI discovery, routing, spatial analysis, basemap styling, tiles, elevation, and static maps. Authenticated requests use a Bearer API key. Supported operations accept result handles for server-side processing of intermediate data.\n\n\n## Machine payment\n\nRead the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.\n\nEndpoint: POST https://api.mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/api/status.\n\n## Attribution\n\nOpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://api.mapsource.io/attribution.\n"
   },
   "servers": [
     {
-      "url": "https://mapsource.io",
+      "url": "https://api.mapsource.io",
       "description": "Mapsource production"
     }
   ],
@@ -16,7 +16,7 @@
       "get": {
         "operationId": "readServiceStatus",
         "summary": "Read per-subsystem availability and dataset freshness",
-        "description": "Reports each subsystem independently, the OSM dataset timestamp, minute-diff replication state and lag in seconds, and whether machine payment can settle.\n\nWhen to use: Monitor service availability, dataset freshness, and payment settlement readiness.\n\nWhen not to use: Poll at an appropriate interval; status checks are not required before every API call.",
+        "description": "Reports each subsystem independently, the OSM dataset timestamp, minute-diff replication state and lag in seconds, whether machine payment can settle, the deployed Overpass engine version, and for every dataset the engine build serving it and the data snapshot it answers from. overpass.displayVersion is read from the running engine binary (for example \"0.7.62.11 87bfad18\") and changes automatically when production is upgraded.\n\nWhen to use: Monitor service availability, dataset freshness, payment settlement readiness, and the engine and dataset versions behind each answer.\n\nWhen not to use: Poll at an appropriate interval; status checks are not required before every API call.",
         "tags": [
           "meta"
         ],
@@ -37,14 +37,310 @@
                         "maintenance"
                       ]
                     },
+                    "gateway": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "commit": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "ready": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "commit",
+                        "ready"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "overpass": {
+                      "type": "object",
+                      "properties": {
+                        "ready": {
+                          "type": "boolean",
+                          "description": "True when the engine answers and reports a parseable version."
+                        },
+                        "version": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Overpass API semantic version reported by the running engine; null only while it cannot be read."
+                        },
+                        "commit": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Source commit the engine binary was built from."
+                        },
+                        "displayVersion": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Exact deployed Overpass engine version/build, read from the running binary, e.g. \"0.7.62.11 87bfad18\"."
+                        },
+                        "engine": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "commit": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "version",
+                            "commit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "gateway": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            },
+                            "commit": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "version",
+                            "commit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "attic": {
+                          "description": "Whether historical (attic) queries are available, measured against the engine.",
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "datasetTimestamp": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "OSM base timestamp of the data the engine answers from."
+                        }
+                      },
+                      "required": [
+                        "ready",
+                        "version",
+                        "commit",
+                        "displayVersion",
+                        "engine",
+                        "gateway",
+                        "attic",
+                        "datasetTimestamp"
+                      ],
+                      "additionalProperties": false,
+                      "description": "The deployed Overpass engine's identity as the running binary reports it."
+                    },
+                    "datasets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "enum": [
+                              "overpass",
+                              "vector-tiles",
+                              "tiles",
+                              "routing",
+                              "local-search",
+                              "contours"
+                            ]
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "ready": {
+                            "type": "boolean"
+                          },
+                          "engine": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "version": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "commit": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "display": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "version",
+                              "commit",
+                              "display"
+                            ],
+                            "additionalProperties": false,
+                            "description": "The engine build serving this dataset, as the backend reports it."
+                          },
+                          "dataset": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "version": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "timestamp": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "source": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "version",
+                              "timestamp",
+                              "source"
+                            ],
+                            "additionalProperties": false,
+                            "description": "The data snapshot this dataset answers from."
+                          },
+                          "detail": {
+                            "description": "Why a value is null, when one is.",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "ready",
+                          "engine",
+                          "dataset",
+                          "detail"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Each dataset's serving engine build and data snapshot, read from the backend that owns it."
+                    },
                     "engine": {
                       "type": "object",
                       "properties": {
                         "mode": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "fixture",
+                            "overpass"
+                          ]
                         },
                         "ready": {
                           "type": "boolean"
+                        },
+                        "generation": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
                         },
                         "dataTimestamp": {
                           "type": [
@@ -53,9 +349,15 @@
                           ]
                         },
                         "replicationLagSeconds": {
-                          "type": [
-                            "integer",
-                            "null"
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "null"
+                            }
                           ]
                         },
                         "replication": {
@@ -83,27 +385,51 @@
                               ]
                             },
                             "lagSeconds": {
-                              "type": [
-                                "integer",
-                                "null"
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
                               ]
                             },
                             "sequence": {
-                              "type": [
-                                "integer",
-                                "null"
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
                               ]
                             },
                             "upstreamSequence": {
-                              "type": [
-                                "integer",
-                                "null"
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
                               ]
                             },
                             "sequencesBehind": {
-                              "type": [
-                                "integer",
-                                "null"
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
                               ]
                             },
                             "lastSuccessfulReplication": {
@@ -118,9 +444,31 @@
                                 "null"
                               ]
                             }
-                          }
+                          },
+                          "required": [
+                            "state",
+                            "localTimestamp",
+                            "upstreamTimestamp",
+                            "lagSeconds",
+                            "sequence",
+                            "upstreamSequence",
+                            "sequencesBehind",
+                            "lastSuccessfulReplication",
+                            "detail"
+                          ],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": [
+                        "mode",
+                        "ready",
+                        "generation",
+                        "version",
+                        "dataTimestamp",
+                        "replicationLagSeconds",
+                        "replication"
+                      ],
+                      "additionalProperties": false
                     },
                     "services": {
                       "type": "array",
@@ -128,7 +476,21 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "overpass",
+                              "tiles",
+                              "vector-tiles",
+                              "routing",
+                              "isochrones",
+                              "contours",
+                              "elevation",
+                              "payments"
+                            ]
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
                           },
                           "ready": {
                             "type": "boolean"
@@ -138,13 +500,24 @@
                               "string",
                               "null"
                             ]
+                          },
+                          "endpoint": {
+                            "type": "string",
+                            "minLength": 1
                           }
-                        }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "ready",
+                          "detail",
+                          "endpoint"
+                        ],
+                        "additionalProperties": false
                       }
                     },
                     "subsystems": {
                       "type": "array",
-                      "description": "Subsystem availability, grouped by degradation domain.",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -174,7 +547,16 @@
                               "null"
                             ]
                           }
-                        }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "domain",
+                          "critical",
+                          "state",
+                          "detail"
+                        ],
+                        "additionalProperties": false
                       }
                     },
                     "domains": {
@@ -186,7 +568,12 @@
                             "type": "string"
                           },
                           "state": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "operational",
+                              "degraded",
+                              "unavailable"
+                            ]
                           },
                           "affected": {
                             "type": "array",
@@ -194,10 +581,68 @@
                               "type": "string"
                             }
                           }
-                        }
+                        },
+                        "required": [
+                          "id",
+                          "state",
+                          "affected"
+                        ],
+                        "additionalProperties": false
                       }
+                    },
+                    "billing": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "provider": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "provider"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "incident": {
+                      "type": "object",
+                      "properties": {
+                        "active": {
+                          "type": "boolean"
+                        },
+                        "summary": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "active",
+                        "summary"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "checkedAt": {
+                      "type": "string"
                     }
-                  }
+                  },
+                  "required": [
+                    "status",
+                    "gateway",
+                    "overpass",
+                    "datasets",
+                    "engine",
+                    "services",
+                    "subsystems",
+                    "domains",
+                    "billing",
+                    "incident",
+                    "checkedAt"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -2482,6 +2927,32 @@
         "responses": {
           "200": {
             "description": "Execute an Overpass QL query",
+            "headers": {
+              "X-Mapsource-Overpass-Version": {
+                "description": "Overpass API version the running engine reports. Omitted until the engine has answered a probe.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Overpass-Commit": {
+                "description": "Source commit of the running engine binary. Omitted with the version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Version": {
+                "description": "Mapsource gateway version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Commit": {
+                "description": "Mapsource gateway source commit, when known.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3032,6 +3503,32 @@
         "responses": {
           "200": {
             "description": "Execute an Overpass QL query",
+            "headers": {
+              "X-Mapsource-Overpass-Version": {
+                "description": "Overpass API version the running engine reports. Omitted until the engine has answered a probe.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Overpass-Commit": {
+                "description": "Source commit of the running engine binary. Omitted with the version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Version": {
+                "description": "Mapsource gateway version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Commit": {
+                "description": "Mapsource gateway source commit, when known.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3594,6 +4091,32 @@
         "responses": {
           "200": {
             "description": "Execute Overpass QL with the key in the path",
+            "headers": {
+              "X-Mapsource-Overpass-Version": {
+                "description": "Overpass API version the running engine reports. Omitted until the engine has answered a probe.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Overpass-Commit": {
+                "description": "Source commit of the running engine binary. Omitted with the version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Version": {
+                "description": "Mapsource gateway version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Commit": {
+                "description": "Mapsource gateway source commit, when known.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4154,6 +4677,32 @@
         "responses": {
           "200": {
             "description": "Execute Overpass QL with the key in the path",
+            "headers": {
+              "X-Mapsource-Overpass-Version": {
+                "description": "Overpass API version the running engine reports. Omitted until the engine has answered a probe.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Overpass-Commit": {
+                "description": "Source commit of the running engine binary. Omitted with the version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Version": {
+                "description": "Mapsource gateway version.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Mapsource-Gateway-Commit": {
+                "description": "Mapsource gateway source commit, when known.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -9281,7 +9830,7 @@
       "get": {
         "operationId": "reverseGeocode",
         "summary": "Reverse geocode a coordinate",
-        "description": "Returns the nearest matching place and alternative candidates. Addressed features are preferred at comparable distances.\n\nWhen to use: Retrieve a place name or address associated with a coordinate.",
+        "description": "Reverse geocodes against the local Photon address index and returns the nearest indexed house number, street, district, city, state, postcode, country and country code with coordinate, distance and OSM identity. Local Overpass candidates remain available as traceable fallbacks.\n\nWhen to use: Retrieve a complete locally indexed postal address or place identity associated with a coordinate.",
         "tags": [
           "discovery"
         ],

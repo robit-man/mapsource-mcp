@@ -12,7 +12,7 @@ import {
 import { Server } from "@modelcontextprotocol/server";
 import { VERSION } from "./version.js";
 
-export const DEFAULT_MCP_URL = "https://mapsource.io/mcp";
+export const DEFAULT_MCP_URL = "https://api.mapsource.io/mcp";
 
 export interface RemoteMapsourceClient {
   listTools(

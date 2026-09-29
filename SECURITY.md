@@ -5,7 +5,7 @@ Report vulnerabilities privately through GitHub security advisories for
 or tool results in public issues.
 
 The adapter reads `MAPSOURCE_API_KEY` at startup and forwards it only in the
-Bearer authorization header to `https://mapsource.io/mcp` by default. An origin
+Bearer authorization header to `https://api.mapsource.io/mcp` by default. An origin
 override is accepted only through `MAPSOURCE_MCP_URL`; treat that as a trust
 boundary and use an HTTPS endpoint you control. Credentials are never accepted
 in a URL, persisted, or written to stdout/stderr.

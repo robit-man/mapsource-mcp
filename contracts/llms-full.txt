@@ -14,15 +14,15 @@ Where x402 is available, an unpaid query returns HTTP 402 with a payment require
 
 ## Common templates
 
-- Overpass: POST https://mapsource.io/api/interpreter
-- Address/business lookup: GET https://mapsource.io/api/places/lookup?q={text}&lat={latitude}&lon={longitude}
-- Regional POI discovery: POST https://mapsource.io/api/places/discover
-- Raster basemap: https://mapsource.io/api/tiles/dark/{z}/{x}/{y}.png and https://mapsource.io/api/tiles/light/{z}/{x}/{y}.png
-- Vector basemap: https://mapsource.io/api/tiles/vector/{z}/{x}/{y}.pbf
-- Terrain: https://mapsource.io/api/terrain/{z}/{x}/{y}.png
-- Elevation: https://mapsource.io/api/elevation?lat={latitude}&lon={longitude}
-- Compiled style: https://mapsource.io/api/styles/{id}/style.json
-- Glyphs: https://mapsource.io/api/glyphs/{fontstack}/{range}.pbf
+- Overpass: POST https://api.mapsource.io/api/interpreter
+- Address/business lookup: GET https://api.mapsource.io/api/places/lookup?q={text}&lat={latitude}&lon={longitude}
+- Regional POI discovery: POST https://api.mapsource.io/api/places/discover
+- Raster basemap: https://api.mapsource.io/api/tiles/dark/{z}/{x}/{y}.png and https://api.mapsource.io/api/tiles/light/{z}/{x}/{y}.png
+- Vector basemap: https://api.mapsource.io/api/tiles/vector/{z}/{x}/{y}.pbf
+- Terrain: https://api.mapsource.io/api/terrain/{z}/{x}/{y}.png
+- Elevation: https://api.mapsource.io/api/elevation?lat={latitude}&lon={longitude}
+- Compiled style: https://api.mapsource.io/api/styles/{id}/style.json
+- Glyphs: https://api.mapsource.io/api/glyphs/{fontstack}/{range}.pbf
 
 ## Browser map presentation
 
@@ -48,9 +48,9 @@ Supported operations can return result handles with a type, creation and expiry 
 
 GET /api/status — Read per-subsystem availability and dataset freshness
 
-Reports each subsystem independently, the OSM dataset timestamp, minute-diff replication state and lag in seconds, and whether machine payment can settle.
+Reports each subsystem independently, the OSM dataset timestamp, minute-diff replication state and lag in seconds, whether machine payment can settle, the deployed Overpass engine version, and for every dataset the engine build serving it and the data snapshot it answers from. overpass.displayVersion is read from the running engine binary (for example "0.7.62.11 87bfad18") and changes automatically when production is upgraded.
 
-When to use: Monitor service availability, dataset freshness, and payment settlement readiness.
+When to use: Monitor service availability, dataset freshness, payment settlement readiness, and the engine and dataset versions behind each answer.
 When not to use: Poll at an appropriate interval; status checks are not required before every API call.
 
 Parameters:
@@ -295,9 +295,9 @@ Through MCP: geo_search with operation nearby.
 
 GET /api/places/reverse — Reverse geocode a coordinate
 
-Returns the nearest matching place and alternative candidates. Addressed features are preferred at comparable distances.
+Reverse geocodes against the local Photon address index and returns the nearest indexed house number, street, district, city, state, postcode, country and country code with coordinate, distance and OSM identity. Local Overpass candidates remain available as traceable fallbacks.
 
-When to use: Retrieve a place name or address associated with a coordinate.
+When to use: Retrieve a complete locally indexed postal address or place identity associated with a coordinate.
 
 Parameters:
   - lat (query, required): Latitude in decimal degrees. [min -85.05112878, max 85.05112878]
@@ -1088,8 +1088,8 @@ REST only; no MCP tool maps to this operation.
 
 Read the network, asset, amount and recipient from the challenge itself (PAYMENT-REQUIRED). Mainnet settlement transfers real funds. Obtain explicit spending authority for the amount and task budget before signing. Check settlement status before retrying a signed payment.
 
-Endpoint: POST https://mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://mapsource.io/api/status.
+Endpoint: POST https://api.mapsource.io/api/x402/interpreter. Send a JSON object with a query field. Configured price: $0.01 per query on eip155:8453. Mode: live. Successful settlement transfers real funds on the specified network. Payments settle directly to the configured wallet. Save the transaction hash from PAYMENT-RESPONSE for support. Query payment does not create a subscription or API key. Settlement availability: https://api.mapsource.io/api/status.
 
 ## Attribution
 
-OpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://mapsource.io/attribution.
+OpenStreetMap data is © OpenStreetMap contributors under ODbL. Basemap tiles additionally carry OpenMapTiles and CARTO attribution, and terrain comes from Mapzen Terrain Tiles on AWS Open Data. Keep the attribution returned with a response when you publish anything derived from it. See https://api.mapsource.io/attribution.

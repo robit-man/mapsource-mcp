@@ -30,7 +30,7 @@ Use the equivalent command, args, and secret-environment fields in your MCP clie
 MAPSOURCE_API_KEY="$MAPSOURCE_API_KEY" npx mapsource-mcp --check
 ```
 
-Clients that support Streamable HTTP and protected headers can connect directly to `https://mapsource.io/mcp` with `Authorization: Bearer …`; the adapter exists for stdio-first clients.
+Clients that support Streamable HTTP and protected headers can connect directly to `https://api.mapsource.io/mcp` with `Authorization: Bearer …`; the adapter exists for stdio-first clients.
 
 ## Complete tool surface
 
